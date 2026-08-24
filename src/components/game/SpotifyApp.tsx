@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Home, Library, Search, User, X } from "lucide-react";
 import { compact } from "@/lib/game/format";
-import { creditLine, featName, playerSongs, profileOf, rosterOf } from "@/lib/game/sim";
+import { creditLine, featName, isStreamingTrack, playerSongs, profileOf, rosterOf } from "@/lib/game/sim";
 import { useGame } from "@/lib/game/store";
 import { CHART_SIZE, type SpotifyTab } from "@/lib/game/types";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,7 @@ export function SpotifyApp() {
       <div className="flex h-dvh w-full max-w-[480px] flex-col bg-[#121212] text-white md:h-[min(844px,calc(100dvh-48px))] md:rounded-[2rem] md:border md:border-white/10 phone-bezel">
         <header className="flex items-center justify-between px-4 py-3">
           <button className="min-h-10 text-sm text-white/50" onClick={() => setOverlay({ type: "none" })}>
-            HQ
+            Back
           </button>
           <p className="font-display text-lg text-wave">Spotify</p>
           <button
@@ -74,7 +74,7 @@ function SpotifyHome() {
   const setOverlay = useGame((s) => s.setOverlay);
   const roster = rosterOf(game);
   const hot = game.songs
-    .filter((s) => s.status === "released")
+    .filter((s) => isStreamingTrack(s))
     .slice()
     .sort((a, b) => b.streamsWeek - a.streamsWeek)
     .slice(0, CHART_SIZE.spotify);
@@ -114,7 +114,7 @@ function SpotifyHome() {
                   <span className="block truncate text-sm">{s.title}</span>
                   <span className="truncate text-xs text-white/45">{creditLine(game, s)}</span>
                 </span>
-                <span className="text-xs tabular-nums text-white/40">{compact(s.streamsWeek)}</span>
+                <span className="text-xs tabular-nums text-white/40">{compact(s.streamsWeek)} plays</span>
               </button>
             </li>
           );

@@ -17,7 +17,7 @@ import {
 import { handleize } from "./format";
 import { isControlled, nid, playerArtist, pushNotif, rosterOf, syncPopularity, unlockAchievement } from "./core";
 import {
-  albumUnitsOf,
+  albumWeekUnits,
   barsBlock,
   buyJet,
   buyJewelry,
@@ -29,6 +29,8 @@ import {
   goOut,
   hireLawyer,
   hot100Points,
+  isStreamingTrack,
+  paintRegionalWeek,
   postBail,
   privateDay,
   pushMail,
@@ -37,6 +39,8 @@ import {
   sendGift,
   tickLife,
   useSubstance,
+  weekHotPoints,
+  weekPlays,
 } from "./life";
 import {
   ensureFamily,
@@ -111,7 +115,7 @@ import {
 } from "./finance";
 
 export { isControlled, nid, playerArtist, rosterOf, syncPopularity, unlockAchievement };
-export { featureQuote, popTier, unreadMail } from "./life";
+export { featureQuote, popTier, unreadMail, weekPlays, weekHotPoints, albumWeekSales, isStreamingTrack } from "./life";
 
 const STREAM_RATE = 0.0042;
 const EMPTY_REGIONS = (): Record<RegionId, { streams: number; digital: number; physical: number; radio: number }> => {
@@ -521,6 +525,8 @@ function writeSong(state: GameState, rng: Rng, artist: Artist, npc = false): Son
     chartPoints: 0,
     albumUnits: 0,
     ost: false,
+    albumId: null,
+    regionalWeek: EMPTY_REGIONS(),
   };
   s.quality = qualityOf(s);
   return s;
@@ -670,9 +676,17 @@ function seedHit(
   song.promoHeat = 55 + artist.fame * 0.3;
   song.lastPromoWeek = state.week;
   song.quality = clamp(70 + Math.round(artist.fame / 8), 60, 99);
-  const home = CITY_TO_REGION[artist.hometown] ?? "northamerica";
-  song.regional[home].streams = Math.round(lifetime * 0.48);
-  song.regional[home].digital = Math.round(lifetime * 0.001);
+  song.salesDigitalWeek = Math.round(weekly * 0.001);
+  song.salesPhysicalWeek = Math.round(weekly * (kind === "album" ? 0.0004 : 0.00005));
+  paintRegionalWeek(state, song, weekly, song.salesDigitalWeek, song.salesPhysicalWeek, Math.round(song.radioPower * 4), false);
+  const mix = song.regionalWeek;
+  for (const r of REGIONS) {
+    const w = weekly > 0 ? (mix[r.id]?.streams ?? 0) / weekly : 0;
+    song.regional[r.id].streams = Math.round(lifetime * w);
+    song.regional[r.id].digital = Math.round(song.salesDigital * w);
+    song.regional[r.id].physical = Math.round(song.salesPhysical * w);
+    song.regional[r.id].radio = Math.round((mix[r.id]?.radio ?? 0) * 12);
+  }
   const sound = makeSound(state, song.title, artist.name, song.id);
   sound.uses = Math.round(weekly * 0.04);
   song.soundId = sound.id;
@@ -685,6 +699,59 @@ function seedHit(
   clip.likes = Math.round(clip.views * 0.08);
   state.clips.push(clip);
   return song;
+}
+
+function attachAlbum(
+  state: GameState,
+  artist: Artist,
+  title: string,
+  kind: Album["kind"],
+  tracks: Song[],
+  format: ReleaseFormat,
+): Album {
+  const streamsWeek = tracks.reduce((n, s) => n + (s.streamsWeek || 0), 0);
+  const streams = tracks.reduce((n, s) => n + (s.streams || 0), 0);
+  const album: Album = {
+    id: nid(state, "lp"),
+    artistId: artist.id,
+    title,
+    kind,
+    songIds: tracks.map((t) => t.id),
+    status: "released",
+    releasedWeek: tracks.reduce((n, s) => Math.min(n, s.releasedWeek ?? state.week), state.week),
+    streams,
+    streamsWeek,
+    salesDigitalWeek: Math.round(streamsWeek * 0.00035 + tracks.length * 12),
+    salesPhysicalWeek: Math.round(streamsWeek * 0.00005 * Math.sqrt(tracks.length)),
+    salesDigital: Math.round(streams * 0.0004),
+    salesPhysical: Math.round(streams * 0.00008),
+    albumUnits: 0,
+    chart: null,
+    peakChart: null,
+    cover: tracks[0]?.cover ?? 0,
+    producer: "In-house",
+    execProducer: artist.signed ? (state.rivals.find((r) => r.id === artist.labelId)?.name ?? state.labelName) : "Independent",
+    releaseFormat: format,
+  };
+  album.albumUnits = albumWeekUnits(album, tracks);
+  for (const t of tracks) t.albumId = album.id;
+  state.albums.push(album);
+  return album;
+}
+
+function seedStarAlbum(state: GameState, rng: Rng, artist: Artist, hitTitle: string, weekly: number, lifetime: number) {
+  const hit = state.songs.find((s) => s.artistId === artist.id && s.title === hitTitle);
+  const tracks: Song[] = hit ? [hit] : [];
+  const extra = rng.int(6, 10);
+  for (let i = 0; i < extra; i++) {
+    const w = Math.round(weekly * (0.08 + rng.next() * 0.22));
+    const life = Math.round(lifetime * (0.05 + rng.next() * 0.18));
+    tracks.push(seedHit(state, rng, artist, songTitle(rng), w, life, rng.int(2, 18), "single"));
+  }
+  while (tracks.length < 6) {
+    tracks.push(seedHit(state, rng, artist, songTitle(rng), Math.round(weekly * 0.1), Math.round(lifetime * 0.08), rng.int(4, 20), "single"));
+  }
+  attachAlbum(state, artist, songTitle(rng), "album", tracks.slice(0, 12), "both");
 }
 
 function announceCollab(state: GameState, rng: Rng, song: Song) {
@@ -835,7 +902,7 @@ function seedSuperstar(state: GameState, rng: Rng, name: string, genre: GenreId,
   applyVerification(state, artist, false);
   state.artists.push(artist);
   seedHit(state, rng, artist, hit, weekly, lifetime, rng.int(2, 10));
-  seedHit(state, rng, artist, `${hit} (LP)`, Math.round(weekly * 0.55), Math.round(lifetime * 1.7), rng.int(4, 14), "album");
+  seedStarAlbum(state, rng, artist, hit, weekly, lifetime);
   // Catalog leftover that still trickles
   if (rng.chance(0.7)) {
     const older = writeSong(state, rng, artist, true);
@@ -851,6 +918,12 @@ function seedSuperstar(state: GameState, rng: Rng, name: string, genre: GenreId,
     older.soundId = snd.id;
     state.sounds.push(snd);
     state.songs.push(older);
+    paintRegionalWeek(state, older, older.streamsWeek, Math.round(older.streamsWeek * 0.001), 0, 0, false);
+    const lifeW = older.streamsWeek || 1;
+    for (const r of REGIONS) {
+      const w = (older.regionalWeek[r.id]?.streams ?? 0) / lifeW;
+      older.regional[r.id].streams = Math.round(older.streams * w);
+    }
   }
   return artist;
 }
@@ -887,16 +960,7 @@ function populateWorld(state: GameState, rng: Rng) {
       applyVerification(state, artist, false);
       state.artists.push(artist);
       seedHit(state, rng, artist, r.hit, r.hitWeekly, r.hitLifetime, rng.int(1, 8));
-      seedHit(
-        state,
-        rng,
-        artist,
-        `${r.hit.split(" ")[0]} Era`,
-        Math.round(r.hitWeekly * 0.52),
-        Math.round(r.hitLifetime * 1.6),
-        rng.int(3, 12),
-        "album",
-      );
+      seedStarAlbum(state, rng, artist, r.hit, r.hitWeekly, r.hitLifetime);
     }
   } else {
     for (const s of SUPERSTAR_FICTIONAL) {
@@ -1312,6 +1376,8 @@ export function buySongFromMarket(state: GameState, marketId: string, artistId: 
     chartPoints: 0,
     albumUnits: 0,
     ost: false,
+    albumId: null,
+    regionalWeek: EMPTY_REGIONS(),
   };
   state.songs.push(song);
   state.songMarket = state.songMarket.filter((s) => s.id !== marketId);
@@ -1671,6 +1737,8 @@ function dummySong(artist: Artist, sound: Sound, week: number): Song {
     chartPoints: 0,
     albumUnits: 0,
     ost: false,
+    albumId: null,
+    regionalWeek: EMPTY_REGIONS(),
   };
 }
 
@@ -1880,7 +1948,7 @@ export function shootVideo(
 }
 
 function recomputeCharts(state: GameState) {
-  const released = state.songs.filter((s) => s.status === "released" && s.kind !== "album" && s.kind !== "ep" && s.kind !== "greatestHits");
+  const released = state.songs.filter((s) => isStreamingTrack(s));
   const scored = released.map((s) => {
     const recency = s.releasedWeek == null ? 0.4 : clamp(1.15 - (state.week - s.releasedWeek) * 0.05, 0.12, 1.2);
     const score = hot100Points(state, s);
@@ -1916,20 +1984,30 @@ function recomputeRadioCharts(state: GameState) {
 }
 
 function recomputeAlbumCharts(state: GameState) {
-  const albums = state.songs.filter((s) => s.status === "released" && (s.kind === "album" || s.kind === "ep" || s.kind === "greatestHits"));
-  const scored = albums.map((s) => {
-    const recency = s.releasedWeek == null ? 0.4 : clamp(1.1 - (state.week - s.releasedWeek) * 0.04, 0.15, 1.15);
-    const units = albumUnitsOf(s);
-    s.albumUnits = units;
-    return { s, score: units * recency };
+  if (!Array.isArray(state.albums)) state.albums = [];
+  const albums = state.albums.filter((a) => a.status === "released");
+  const scored = albums.map((a) => {
+    const tracks = a.songIds.map((id) => state.songs.find((s) => s.id === id)).filter((s): s is Song => !!s);
+    const recency = a.releasedWeek == null ? 0.4 : clamp(1.1 - (state.week - a.releasedWeek) * 0.04, 0.15, 1.15);
+    const units = albumWeekUnits(a, tracks);
+    a.albumUnits = units;
+    a.streamsWeek = tracks.reduce((n, s) => n + (s.streamsWeek || 0), 0);
+    a.streams = tracks.reduce((n, s) => n + (s.streams || 0), 0);
+    return { a, score: units * recency, tracks };
   });
-  scored.sort((a, b) => b.score - a.score);
-  albums.forEach((s) => {
-    s.albumChart = null;
+  scored.sort((x, y) => y.score - x.score);
+  albums.forEach((a) => {
+    a.chart = null;
   });
+  for (const s of state.songs) s.albumChart = null;
   scored.slice(0, CHART_SIZE.albums).forEach((row, i) => {
-    row.s.albumChart = i + 1;
-    if (row.s.peakAlbum == null || i + 1 < row.s.peakAlbum) row.s.peakAlbum = i + 1;
+    row.a.chart = i + 1;
+    if (row.a.peakChart == null || i + 1 < row.a.peakChart) row.a.peakChart = i + 1;
+    for (const s of row.tracks) {
+      s.albumChart = i + 1;
+      s.albumUnits = row.a.albumUnits;
+      if (s.peakAlbum == null || i + 1 < s.peakAlbum) s.peakAlbum = i + 1;
+    }
   });
 }
 
@@ -2946,22 +3024,66 @@ export function runTalentShow(state: GameState, rng: Rng): string | null {
   return null;
 }
 
+export function compileRelease(
+  state: GameState,
+  artistId: string,
+  title: string,
+  kind: Album["kind"],
+  songIds: string[],
+  format: ReleaseFormat = "both",
+): string | null {
+  const artist = state.artists.find((a) => a.id === artistId);
+  if (!artist || !isControlled(state, artist)) return "Not your catalog.";
+  const unique = [...new Set(songIds)];
+  if (kind === "ep" && (unique.length < 3 || unique.length > 5)) return "An EP is 3 to 5 songs.";
+  if (kind === "album" && (unique.length < 6 || unique.length > 20)) return "An album is 6 to 20 songs.";
+  if (kind === "greatestHits" && unique.length < 3) return "Need three singles first.";
+  const tracks: Song[] = [];
+  for (const id of unique) {
+    const s = state.songs.find((x) => x.id === id);
+    if (!s || s.artistId !== artistId) return "Every track has to be yours.";
+    if (s.status !== "mastered" && s.status !== "released") return `“${s.title}” isn't finished.`;
+    if (s.albumId && state.albums.some((a) => a.id === s.albumId && a.status === "released")) {
+      return `“${s.title}” is already on a project.`;
+    }
+    tracks.push(s);
+  }
+  const cost = kind === "ep" ? 4_500 : kind === "greatestHits" ? 12_000 : 14_000;
+  if (state.cash < cost) return `Packaging is ${cost.toLocaleString("en-US")}.`;
+  state.cash -= cost;
+  const rng = mulberry32(state.seed + state.week * 19 + unique.length);
+  for (const s of tracks) {
+    if (s.status === "mastered") {
+      const err = releaseSong(state, s.id, rng, format);
+      if (err) return err;
+    }
+  }
+  const name = title.trim() || `${artist.name} ${kind === "ep" ? "EP" : kind === "greatestHits" ? "Greatest Hits" : "LP"}`;
+  attachAlbum(state, artist, name, kind, tracks, format);
+  if (kind === "album" && artist.signed && artist.albumsRemaining > 0) artist.albumsRemaining -= 1;
+  recomputeAlbumCharts(state);
+  pushNotif(state, {
+    tone: "good",
+    title: `Released ${kind === "ep" ? "EP" : kind === "greatestHits" ? "Greatest Hits" : "album"} “${name}”`,
+    body: `${tracks.length} tracks. Billboard 200 is watching first-week sales.`,
+  });
+  return null;
+}
+
 export function compileGreatestHits(state: GameState, artistId: string, rng: Rng): string | null {
   const artist = state.artists.find((a) => a.id === artistId);
   if (!artist || !isControlled(state, artist)) return "Not your catalog.";
-  const hits = state.songs.filter((s) => s.artistId === artistId && s.status === "released" && s.kind === "single");
-  if (hits.length < 3) return "Need three singles first.";
-  if (state.cash < 12_000) return "Compilation costs $12,000.";
-  state.cash -= 12_000;
-  const song = writeSong(state, rng, artist, false);
-  song.kind = "greatestHits";
-  song.title = `${artist.name} · Greatest Hits`;
-  song.status = "mastered";
-  song.weeksLeft = 0;
-  song.quality = clamp(Math.round(hits.reduce((n, s) => n + s.quality, 0) / hits.length) + 4, 40, 96);
-  state.songs.push(song);
-  pushNotif(state, { tone: "good", title: "Greatest Hits mastered", body: "Release when you want the catalog to work again." });
-  return null;
+  const hits = state.songs
+    .filter((s) => s.artistId === artistId && s.status === "released" && isStreamingTrack(s) && !s.albumId)
+    .sort((a, b) => b.streams - a.streams)
+    .slice(0, 12);
+  if (hits.length < 3) {
+    const any = state.songs.filter((s) => s.artistId === artistId && s.status === "released" && isStreamingTrack(s)).length;
+    if (any < 3) return "Need three singles first.";
+    return "Those singles are already on a project. Write more, then compile.";
+  }
+  void rng;
+  return compileRelease(state, artistId, `${artist.name} · Greatest Hits`, "greatestHits", hits.map((s) => s.id), "both");
 }
 
 export function applyCheat(state: GameState, kind: string, rng: Rng): string | null {
@@ -3323,9 +3445,28 @@ export function tickWeek(state: GameState, rng: Rng) {
       song.promoHeat = Math.max(0, song.promoHeat * 0.72 - 2);
       song.tiktokHeat = Math.max(0, song.tiktokHeat * 0.6);
       song.videoHeat = Math.max(0, song.videoHeat * 0.78);
-      const home = CITY_TO_REGION[state.artists.find((a) => a.id === song.artistId)?.hometown ?? ""] ?? "northamerica";
-      song.regional[home].streams += Math.round(song.streamsWeek * 0.45);
+      paintRegionalWeek(
+        state,
+        song,
+        song.streamsWeek,
+        d,
+        p,
+        song.radioWeeks > 0 ? song.radioPower : Math.round(song.radioPower * 0.2),
+        true,
+      );
     }
+  }
+
+  for (const album of state.albums ?? []) {
+    if (album.status !== "released") continue;
+    const tracks = album.songIds.map((id) => state.songs.find((s) => s.id === id)).filter((s): s is Song => !!s);
+    album.streamsWeek = tracks.reduce((n, s) => n + (s.streamsWeek || 0), 0);
+    album.streams = tracks.reduce((n, s) => n + (s.streams || 0), 0);
+    album.salesDigitalWeek = Math.round(album.streamsWeek * 0.00032 + tracks.length * 6);
+    album.salesPhysicalWeek = Math.round(album.streamsWeek * 0.00004 * Math.max(1, Math.sqrt(tracks.length)));
+    album.salesDigital += album.salesDigitalWeek;
+    album.salesPhysical += album.salesPhysicalWeek;
+    album.albumUnits = albumWeekUnits(album, tracks);
   }
 
   for (const clip of state.clips) {

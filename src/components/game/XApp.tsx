@@ -30,7 +30,7 @@ export function XApp() {
       <div className="flex h-dvh w-full max-w-[480px] flex-col bg-[#000] text-[#e7e9ea] md:h-[min(844px,calc(100dvh-48px))] md:rounded-[2rem] md:border md:border-white/10 phone-bezel">
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <button className="min-h-10 text-sm text-white/50" onClick={() => setOverlay({ type: "none" })}>
-            HQ
+            Back
           </button>
           <p className="font-display text-lg tracking-tight">X</p>
           <button

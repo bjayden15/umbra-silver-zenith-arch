@@ -93,6 +93,7 @@ export type Overlay =
   | { type: "rollout"; clipId: string }
   | { type: "deal"; id: string }
   | { type: "wiki"; artistId: string }
+  | { type: "album"; id: string }
   | { type: "mail" }
   | { type: "settings" }
   | { type: "saves" }
@@ -353,25 +354,31 @@ export type Song = {
   chartPoints: number;
   albumUnits: number;
   ost: boolean;
+  albumId: string | null;
+  regionalWeek: Record<RegionId, RegionSales>;
 };
 
 export type Album = {
   id: string;
   artistId: string;
   title: string;
-  kind: ReleaseKind;
+  kind: "ep" | "album" | "greatestHits";
   songIds: string[];
-  status: "planning" | "recording" | "mixing" | "artwork" | "approved" | "released";
+  status: "planning" | "released";
   releasedWeek: number | null;
   streams: number;
   streamsWeek: number;
   salesPhysical: number;
   salesDigital: number;
+  salesPhysicalWeek: number;
+  salesDigitalWeek: number;
+  albumUnits: number;
   chart: number | null;
   peakChart: number | null;
   cover: number;
   producer: string;
   execProducer: string;
+  releaseFormat: ReleaseFormat;
 };
 
 export type TikTokClip = {
@@ -938,9 +945,9 @@ export type GameState = {
   updateVersion: string;
 };
 
-export const SAVE_VERSION = 7;
-export const SAVE_KEY = "musicstar.save.v7";
-export const SLOTS_KEY = "musicstar.slots.v7";
+export const SAVE_VERSION = 8;
+export const SAVE_KEY = "musicstar.save.v8";
+export const SLOTS_KEY = "musicstar.slots.v8";
 export const LEADER_KEY = "musicstar.leaders.v1";
 export const CREATOR = "Jayden Carter";
 export const GAME_TITLE = "Music Star Career";

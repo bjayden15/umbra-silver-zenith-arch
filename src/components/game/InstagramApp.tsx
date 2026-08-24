@@ -27,7 +27,7 @@ export function InstagramApp() {
       <div className="flex h-dvh w-full max-w-[420px] flex-col bg-black text-white md:h-[min(844px,calc(100dvh-48px))] md:rounded-[2rem] md:border md:border-white/10 phone-bezel">
         <header className="flex items-center justify-between px-4 py-3">
           <button className="min-h-10 text-sm text-white/60" onClick={() => setOverlay({ type: "none" })}>
-            HQ
+            Back
           </button>
           <p className="font-display text-xl">Instagram</p>
           <button

@@ -3,6 +3,7 @@ import { cashPlan, issueStarterCard, jetQuote, originateLoan, settleDue } from "
 import { ensureFamily, scandalParents } from "./family";
 import { clamp, type Rng } from "./rng";
 import type {
+  Album,
   Artist,
   FilmRun,
   GameState,
@@ -30,6 +31,7 @@ import {
   NIGHTLIFE,
   SUBSTANCES,
 } from "./world";
+import { CITY_TO_REGION } from "./catalog";
 
 export function popTier(artist: Artist): PopTier {
   const p = artist.popularity;
@@ -86,13 +88,18 @@ export function ensureLifeState(state: GameState) {
     ensureHealth(a);
     ensureFamily(a);
   }
+  if (!Array.isArray(state.albums)) state.albums = [];
   for (const s of state.songs) {
     if (typeof s.salesDigitalWeek !== "number") s.salesDigitalWeek = 0;
     if (typeof s.salesPhysicalWeek !== "number") s.salesPhysicalWeek = 0;
     if (typeof s.chartPoints !== "number") s.chartPoints = 0;
     if (typeof s.albumUnits !== "number") s.albumUnits = 0;
     if (typeof s.ost !== "boolean") s.ost = false;
+    if (s.albumId === undefined) s.albumId = null;
+    if (!s.regional) s.regional = emptyRegions();
+    if (!s.regionalWeek) s.regionalWeek = emptyRegions();
   }
+  wrapLegacyAlbums(state);
 }
 
 export function ensureHealth(artist: Artist) {
@@ -480,6 +487,8 @@ function makeOstSong(state: GameState, artist: Artist, title: string): Song {
     chartPoints: 0,
     albumUnits: 0,
     ost: true,
+    albumId: null,
+    regionalWeek: emptyRegions(),
   };
 }
 
@@ -1023,6 +1032,160 @@ export function albumUnitsOf(song: Song) {
   const tea = song.salesDigitalWeek / 10;
   const sea = song.streamsWeek / 1_250;
   return pure + tea + sea;
+}
+
+const GENRE_REGION: Partial<Record<Song["genre"], RegionId>> = {
+  afrobeats: "africa",
+  latin: "southamerica",
+  drill: "europe",
+  country: "northamerica",
+  electronic: "europe",
+};
+
+function jitter(seed: string, region: RegionId) {
+  let n = 2166136261;
+  for (let i = 0; i < seed.length; i++) n = Math.imul(n ^ seed.charCodeAt(i), 16777619);
+  for (let i = 0; i < region.length; i++) n = Math.imul(n ^ region.charCodeAt(i), 16777619);
+  return 0.82 + ((n >>> 0) % 37) / 100;
+}
+
+export function regionMix(state: GameState, song: Song, artist?: Artist | null): Record<RegionId, number> {
+  const a = artist ?? state.artists.find((x) => x.id === song.artistId);
+  const homeR: RegionId = (a && CITY_TO_REGION[a.hometown]) || "northamerica";
+  const genreR = GENRE_REGION[song.genre];
+  const weights = {} as Record<RegionId, number>;
+  for (const r of REGIONS) {
+    let w = 0.045 * jitter(song.id, r.id);
+    if (r.id === homeR) w += 0.34;
+    if (genreR && r.id === genreR) w += 0.2;
+    const rep = a?.regionalRep?.[r.id] ?? 8;
+    w += (rep / 100) * 0.22;
+    const targeted = state.campaigns?.some((c) => c.songId === song.id && c.weeksLeft > 0 && c.region === r.id);
+    if (targeted) w += 0.18;
+    weights[r.id] = w;
+  }
+  return weights;
+}
+
+export function apportion(total: number, weights: Record<RegionId, number>): Record<RegionId, number> {
+  const ids = REGIONS.map((r) => r.id);
+  const sumW = ids.reduce((n, id) => n + (weights[id] || 0), 0) || 1;
+  const raw = ids.map((id) => (total * (weights[id] || 0)) / sumW);
+  const floors = raw.map((x) => Math.floor(x));
+  let rem = Math.round(total) - floors.reduce((a, b) => a + b, 0);
+  const order = ids
+    .map((id, i) => ({ id, frac: raw[i]! - floors[i]! }))
+    .sort((a, b) => b.frac - a.frac);
+  const out = {} as Record<RegionId, number>;
+  ids.forEach((id, i) => {
+    out[id] = floors[i]!;
+  });
+  for (let k = 0; k < Math.abs(rem); k++) {
+    const id = order[k % order.length]!.id;
+    out[id] += rem > 0 ? 1 : -1;
+  }
+  return out;
+}
+
+export function paintRegionalWeek(
+  state: GameState,
+  song: Song,
+  streamsWeek: number,
+  digitalWeek: number,
+  physicalWeek: number,
+  radioWeek = 0,
+  accumulate = true,
+) {
+  if (!song.regional) song.regional = emptyRegions();
+  if (!song.regionalWeek) song.regionalWeek = emptyRegions();
+  const mix = regionMix(state, song);
+  const streams = apportion(Math.max(0, Math.round(streamsWeek)), mix);
+  const digital = apportion(Math.max(0, Math.round(digitalWeek)), mix);
+  const physical = apportion(Math.max(0, Math.round(physicalWeek)), mix);
+  const radio = apportion(Math.max(0, Math.round(radioWeek)), mix);
+  for (const r of REGIONS) {
+    const id = r.id;
+    song.regionalWeek[id] = {
+      streams: streams[id] ?? 0,
+      digital: digital[id] ?? 0,
+      physical: physical[id] ?? 0,
+      radio: radio[id] ?? 0,
+    };
+    if (accumulate) {
+      song.regional[id].streams += streams[id] ?? 0;
+      song.regional[id].digital += digital[id] ?? 0;
+      song.regional[id].physical += physical[id] ?? 0;
+      song.regional[id].radio += radio[id] ?? 0;
+    }
+  }
+}
+
+export function weekPlays(song: Song, region: RegionId | "global"): number {
+  if (region === "global") return Math.round(song.streamsWeek || 0);
+  return Math.round(song.regionalWeek?.[region]?.streams ?? 0);
+}
+
+export function weekHotPoints(state: GameState, song: Song, region: RegionId | "global"): number {
+  const global = hot100Points(state, song);
+  if (region === "global") return Math.round(global);
+  const mix = regionMix(state, song);
+  const parts = apportion(Math.max(0, Math.round(global)), mix);
+  return parts[region] ?? 0;
+}
+
+export function albumWeekUnits(album: Album, tracks: Song[]): number {
+  const streams = tracks.reduce((n, s) => n + (s.streamsWeek || 0), 0);
+  const trackDigital = tracks.reduce((n, s) => n + (s.salesDigitalWeek || 0), 0);
+  const physical = album.salesPhysicalWeek || 0;
+  const digital = album.salesDigitalWeek || 0;
+  const tea = trackDigital / 10;
+  const sea = streams / 1_250;
+  return physical + digital * 0.35 + tea + sea;
+}
+
+export function albumWeekSales(album: Album, tracks: Song[], region: RegionId | "global", state: GameState): number {
+  const units = album.albumUnits || albumWeekUnits(album, tracks);
+  if (region === "global") return Math.round(units);
+  const lead = tracks[0];
+  if (!lead) return Math.round(units / REGIONS.length);
+  const mix = regionMix(state, lead);
+  return apportion(Math.max(0, Math.round(units)), mix)[region] ?? 0;
+}
+
+export function isStreamingTrack(song: Song) {
+  return song.status === "released" && song.kind !== "album" && song.kind !== "ep" && song.kind !== "greatestHits";
+}
+
+function wrapLegacyAlbums(state: GameState) {
+  for (const s of state.songs) {
+    if (s.kind !== "album" && s.kind !== "ep" && s.kind !== "greatestHits") continue;
+    if (s.status !== "released") continue;
+    if (s.albumId && state.albums.some((a) => a.id === s.albumId)) continue;
+    const album: Album = {
+      id: nid(state, "lp"),
+      artistId: s.artistId,
+      title: s.title.replace(/\s*\(LP\)$/i, ""),
+      kind: s.kind === "ep" ? "ep" : s.kind === "greatestHits" ? "greatestHits" : "album",
+      songIds: [s.id],
+      status: "released",
+      releasedWeek: s.releasedWeek,
+      streams: s.streams,
+      streamsWeek: s.streamsWeek,
+      salesPhysical: s.salesPhysical,
+      salesDigital: s.salesDigital,
+      salesPhysicalWeek: s.salesPhysicalWeek,
+      salesDigitalWeek: s.salesDigitalWeek,
+      albumUnits: s.albumUnits || albumUnitsOf(s),
+      chart: s.albumChart,
+      peakChart: s.peakAlbum,
+      cover: s.cover,
+      producer: "In-house",
+      execProducer: "Independent",
+      releaseFormat: s.releaseFormat ?? "both",
+    };
+    state.albums.push(album);
+    s.albumId = album.id;
+  }
 }
 
 export type { RegionId };

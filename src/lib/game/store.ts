@@ -22,6 +22,7 @@ import {
   buySongFromMarket,
   coach,
   compileGreatestHits,
+  compileRelease,
   createInitialState,
   dateSomeone,
   declineDeal,
@@ -179,6 +180,7 @@ type Actions = {
   pickFromAudition: (name: string) => void;
   talent: () => void;
   greatest: (artistId: string) => void;
+  compileAlbum: (artistId: string, title: string, kind: "ep" | "album", songIds: string[], format?: ReleaseFormat) => void;
   setDifficulty: (d: "easy" | "normal" | "hard") => void;
   cheat: (kind: string) => void;
   toggleAi: (artistId: string) => void;
@@ -887,7 +889,16 @@ export const useGame = create<GameStore>()(
         const { next, err } = mutate(game, (g) => compileGreatestHits(g, artistId, rng));
         if (err) return toast(set, err, "bad");
         set({ game: next, view: "studio" });
-        toast(set, "Greatest Hits is mastered.", "good");
+        toast(set, "Greatest Hits is out. Check Billboard 200.", "good");
+      },
+
+      compileAlbum: (artistId, title, kind, songIds, format = "both") => {
+        const { game } = get();
+        if (!game) return;
+        const { next, err } = mutate(game, (g) => compileRelease(g, artistId, title, kind, songIds, format));
+        if (err) return toast(set, err, "bad");
+        set({ game: next, view: "studio" });
+        toast(set, `${kind === "ep" ? "EP" : "Album"} is out. Billboard 200 takes first-week sales.`, "good");
       },
 
       setDifficulty: (d) => {

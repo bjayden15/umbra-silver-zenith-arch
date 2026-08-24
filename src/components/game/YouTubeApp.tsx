@@ -74,7 +74,7 @@ export function YouTubeApp() {
       <div className="flex h-dvh w-full max-w-[560px] flex-col bg-[#0f0f0f] text-white md:h-[min(844px,calc(100dvh-48px))] md:rounded-[2rem] md:border md:border-white/10 phone-bezel">
         <header className="flex items-center gap-2 px-3 py-2">
           <button className="min-h-10 shrink-0 text-sm text-white/50" onClick={() => setOverlay({ type: "none" })}>
-            HQ
+            Back
           </button>
           <button
             type="button"

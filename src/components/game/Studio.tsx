@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { genreLabel } from "@/lib/game/catalog";
 import { compact, money } from "@/lib/game/format";
 import { featName, playerSongs, rosterOf } from "@/lib/game/sim";
@@ -17,12 +18,31 @@ export function Studio() {
   const setView = useGame((s) => s.setView);
   const marketBuy = useGame((s) => s.marketBuy);
   const greatest = useGame((s) => s.greatest);
+  const compileAlbum = useGame((s) => s.compileAlbum);
   const roster = rosterOf(game);
   const songs = playerSongs(game);
   const upCost = game.studioTier === 1 ? 45_000 : game.studioTier === 2 ? 95_000 : null;
   const radioCost = game.career === "artist" ? 9_500 : 18_000;
   const pitchCost = game.career === "artist" ? 4_800 : 9_500;
   const incoming = (game.features ?? []).filter((f) => f.status === "open" && (f.incoming || f.hopOn));
+  const [packArtist, setPackArtist] = useState(roster[0]?.id ?? "");
+  const [packTitle, setPackTitle] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
+  const [packFormat, setPackFormat] = useState<ReleaseFormat>("both");
+  const packable = useMemo(
+    () =>
+      songs.filter(
+        (s) =>
+          s.artistId === (packArtist || roster[0]?.id) &&
+          (s.status === "mastered" || s.status === "released") &&
+          s.kind !== "album" &&
+          s.kind !== "ep" &&
+          s.kind !== "greatestHits" &&
+          !s.albumId,
+      ),
+    [songs, packArtist, roster],
+  );
+  const packKind = picked.length >= 6 && picked.length <= 20 ? "album" : picked.length >= 3 && picked.length <= 5 ? "ep" : null;
 
   return (
     <div className="mx-auto grid max-w-6xl gap-4 p-4 md:p-6">
@@ -30,8 +50,8 @@ export function Studio() {
         <div>
           <h1 className="font-display text-3xl tracking-tight">Studio</h1>
           <p className="text-sm text-muted">
-            Book a single, then search any artist in the world as a feature — Taylor, Drake, a prospect. Cash if you
-            have it, otherwise they take a split. Same flow lives in X Direct Messages.
+            Book singles, then search any artist as a feature. Finished songs can drop as a single or get compiled into
+            an EP (3–5) or album (6–20) for Billboard 200.
           </p>
         </div>
         {upCost ? (
@@ -87,13 +107,115 @@ export function Studio() {
             {roster.map((a) => (
               <span key={a.id} className="flex flex-wrap gap-1">
                 <PrimaryBtn onClick={() => startRecord(a.id, "single")}>{a.name} · single</PrimaryBtn>
-                <GhostBtn onClick={() => startRecord(a.id, "ep")}>EP</GhostBtn>
-                <GhostBtn onClick={() => startRecord(a.id, "album")}>Album</GhostBtn>
                 <GhostBtn onClick={() => greatest(a.id)}>Greatest Hits</GhostBtn>
               </span>
             ))}
           </div>
         )}
+      </Panel>
+
+      <Panel title="Compile EP / album">
+        <p className="text-sm text-muted">
+          Pick finished songs. EP is 3–5 tracks. Album is 6–20. They can already be out as singles — the project still
+          charts on Billboard 200.
+        </p>
+        {roster.length > 1 && (
+          <label className="mt-3 grid gap-1 text-xs text-muted">
+            Artist
+            <select
+              value={packArtist || roster[0]!.id}
+              onChange={(e) => {
+                setPackArtist(e.target.value);
+                setPicked([]);
+              }}
+              className="h-11 rounded-md border border-border bg-elevated px-3 text-sm text-fg"
+            >
+              {roster.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label className="mt-3 grid gap-1 text-xs text-muted">
+          Project title
+          <input
+            value={packTitle}
+            onChange={(e) => setPackTitle(e.target.value)}
+            maxLength={40}
+            placeholder="Album or EP name"
+            className="h-11 rounded-md border border-border bg-elevated px-3 text-sm text-fg outline-none focus:border-accent"
+          />
+        </label>
+        {packable.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">Master or release singles first, then compile.</p>
+        ) : (
+          <ul className="mt-3 grid gap-1">
+            {packable.map((s) => {
+              const on = picked.includes(s.id);
+              return (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPicked((prev) => (on ? prev.filter((id) => id !== s.id) : prev.length >= 20 ? prev : [...prev, s.id]))
+                    }
+                    className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-md border px-3 text-left text-sm ${
+                      on ? "border-accent bg-accent/10" : "border-border bg-elevated"
+                    }`}
+                  >
+                    <span className="truncate">
+                      {s.title}
+                      <span className="text-muted"> · {s.status}</span>
+                    </span>
+                    <span className="text-xs text-muted">{on ? "On project" : "Add"}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Pill>{picked.length} tracks</Pill>
+          {packKind === "ep" && <Pill tone="mint">EP ready</Pill>}
+          {packKind === "album" && <Pill tone="mint">Album ready</Pill>}
+          {picked.length > 0 && picked.length < 3 && <Pill>Need 3 for an EP</Pill>}
+          {picked.length > 20 && <Pill tone="bad">Cap is 20</Pill>}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <GhostBtn onClick={() => setPackFormat("both")} className={packFormat === "both" ? "border-accent" : undefined}>
+            Digital + CD
+          </GhostBtn>
+          <GhostBtn onClick={() => setPackFormat("digital")}>Digital</GhostBtn>
+          <GhostBtn onClick={() => setPackFormat("cd")}>CD</GhostBtn>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <PrimaryBtn
+            disabled={packKind !== "ep"}
+            onClick={() => {
+              const id = packArtist || roster[0]?.id;
+              if (!id || packKind !== "ep") return;
+              compileAlbum(id, packTitle, "ep", picked, packFormat);
+              setPicked([]);
+              setPackTitle("");
+            }}
+          >
+            Release EP · $4,500
+          </PrimaryBtn>
+          <GhostBtn
+            disabled={packKind !== "album"}
+            onClick={() => {
+              const id = packArtist || roster[0]?.id;
+              if (!id || packKind !== "album") return;
+              compileAlbum(id, packTitle, "album", picked, packFormat);
+              setPicked([]);
+              setPackTitle("");
+            }}
+          >
+            Release album · $14,000
+          </GhostBtn>
+        </div>
       </Panel>
 
       <Panel title="Song market">
@@ -126,10 +248,12 @@ export function Studio() {
         {songs
           .slice()
           .reverse()
+          .filter((s) => s.kind !== "album" && s.kind !== "ep" && s.kind !== "greatestHits")
           .map((s) => {
             const a = game.artists.find((x) => x.id === s.artistId);
             const feat = featName(game, s);
             const combined = s.salesDigital + s.salesPhysical;
+            const onAlbum = s.albumId ? game.albums.find((al) => al.id === s.albumId) : null;
             return (
               <Panel key={s.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -141,6 +265,7 @@ export function Studio() {
                       {s.radioChart ? <Pill>radio #{s.radioChart}</Pill> : null}
                       {s.status === "released" ? <Pill>{formatLabel(s.releaseFormat)}</Pill> : null}
                       {feat ? <Pill tone="mint">feat. {feat}</Pill> : null}
+                      {onAlbum ? <Pill>on {onAlbum.title}</Pill> : null}
                     </div>
                     <p className="text-sm text-muted">
                       {a?.name} · {genreLabel(s.genre)}
@@ -174,9 +299,9 @@ export function Studio() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   {s.status === "mastered" && (
                     <>
-                      <PrimaryBtn onClick={() => release(s.id, "both")}>Combined digital + CD</PrimaryBtn>
-                      <GhostBtn onClick={() => release(s.id, "digital")}>Digital only</GhostBtn>
-                      <GhostBtn onClick={() => release(s.id, "cd")}>CD only</GhostBtn>
+                      <PrimaryBtn onClick={() => release(s.id, "both")}>Release as single · digital + CD</PrimaryBtn>
+                      <GhostBtn onClick={() => release(s.id, "digital")}>Digital single</GhostBtn>
+                      <GhostBtn onClick={() => release(s.id, "cd")}>CD single</GhostBtn>
                     </>
                   )}
                   {s.status === "released" && (

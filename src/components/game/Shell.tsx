@@ -38,6 +38,7 @@ import { PaySheet } from "./PaySheet";
 import { CeremonyOverlay } from "./Ceremony";
 import { ArtistAvatar } from "./ArtistAvatar";
 import { DeskTabs } from "./bits";
+import { AlbumSheet, SongSheet } from "./ChartSheet";
 
 const MUSIC_VIEWS: ViewId[] = ["studio", "promo", "merch", "tours"];
 const CHART_VIEWS: ViewId[] = ["charts", "awards"];
@@ -292,6 +293,8 @@ export function Shell() {
       {overlay.type === "artist" && <ArtistModal id={overlay.id} />}
       {overlay.type === "rollout" && <Rollout clipId={overlay.clipId} />}
       {overlay.type === "wiki" && <WikiPage artistId={overlay.artistId} />}
+      {overlay.type === "album" && <AlbumSheet id={overlay.id} />}
+      {overlay.type === "song" && <SongSheet id={overlay.id} />}
       {checkout ? <PaySheet /> : null}
       {overlay.type === "ceremony" && <CeremonyOverlay />}
       <SystemSheet />

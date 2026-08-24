@@ -30,10 +30,10 @@ export function TikTokApp() {
   return (
     <div className="fixed inset-0 z-40 flex bg-bg/80">
       <button
-        className="absolute top-3 left-3 z-50 hidden min-h-11 items-center rounded-md border border-border bg-surface px-3 text-sm md:inline-flex"
+        className="absolute top-3 left-3 z-50 inline-flex min-h-11 items-center rounded-md border border-border bg-surface px-3 text-sm"
         onClick={() => setOverlay({ type: "none" })}
       >
-        Back to HQ
+        Back
       </button>
       <div className="mx-auto flex w-full max-w-6xl items-stretch justify-center gap-6 p-0 md:p-6">
         <Phone>
