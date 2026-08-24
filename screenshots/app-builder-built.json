@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Music Star Career",
+      "hasCanvas": false,
+      "bodyTextLen": 456,
+      "bodyTextHash": "dfa9ee1d9ff472c16fa533d164c3118eb8cf17ee2763ddbb900e675a6c133c62",
+      "bodyTextPrefix": "CORE SYSTEMS & GAME MODES · CREATED BY JAYDEN CARTER Music Star ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Music Star Career",
+      "hasCanvas": false,
+      "bodyTextLen": 456,
+      "bodyTextHash": "dfa9ee1d9ff472c16fa533d164c3118eb8cf17ee2763ddbb900e675a6c133c62",
+      "bodyTextPrefix": "CORE SYSTEMS & GAME MODES · CREATED BY JAYDEN CARTER Music Star ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
