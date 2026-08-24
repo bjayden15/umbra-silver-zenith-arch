@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { genreLabel } from "@/lib/game/catalog";
 import { compact, money } from "@/lib/game/format";
-import { isControlled } from "@/lib/game/sim";
+import { isControlled, legalNameOf } from "@/lib/game/sim";
 import { useGame } from "@/lib/game/store";
 import { ArtistAvatar } from "./ArtistAvatar";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -31,6 +31,9 @@ export function ArtistModal({ id }: { id: string }) {
               <p className="text-sm text-muted">
                 @{a.handle} · {genreLabel(a.genre)} · pop {Math.round(a.popularity)}
               </p>
+              {legalNameOf(a) !== a.name ? (
+                <p className="text-xs text-muted">Legal name {legalNameOf(a)}</p>
+              ) : null}
             </div>
           </div>
           <button

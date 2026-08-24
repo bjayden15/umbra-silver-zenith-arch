@@ -248,7 +248,7 @@ function ArtistChannel({ artistId }: { artistId?: string }) {
       <div className="px-4">
         <p className="text-sm text-white/70">
           <span className="font-medium tabular-nums text-white">{compact(a.monthlyListeners)}</span> monthly listeners
-          <span className="text-white/40"> · last 4 weeks of streams</span>
+          <span className="text-white/40"> · last four weeks of streams — nothing more</span>
         </p>
         <p className="mt-1 text-xs text-white/40">
           @{profile.handle} · {compact(a.followers.youtube)} Spotify followers · {a.hometown}

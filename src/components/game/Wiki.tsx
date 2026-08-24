@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { genreLabel } from "@/lib/game/catalog";
 import { compact, money, weekLabel, weekParts } from "@/lib/game/format";
-import { ensureArtistExtras, playerSongs, rosterOf } from "@/lib/game/sim";
+import { ensureArtistExtras, legalNameOf, playerSongs, rosterOf } from "@/lib/game/sim";
 import { useGame } from "@/lib/game/store";
 import { ArtistAvatar } from "./ArtistAvatar";
 import { Pill } from "./bits";
@@ -39,6 +39,8 @@ export function WikiPage({ artistId }: { artistId: string }) {
             </h1>
             <dl className="mt-3 grid gap-1 text-xs">
               <Row k="Born" v={`${a.age - now.careerYear + 1} (${a.hometown})`} />
+              <Row k="Birth name" v={legalNameOf(a)} />
+              <Row k="Stage name" v={a.name} />
               <Row k="Origin" v={`${a.hometown}, ${a.nationality}`} />
               <Row k="Genres" v={genreLabel(a.genre)} />
               <Row k="Occupation" v={a.kind === "band" ? "band" : "singer-songwriter"} />

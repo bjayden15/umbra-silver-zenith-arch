@@ -394,6 +394,8 @@ export function retireToKid(state: GameState, kidId: string): string | null {
     id: nid(state, "a"),
     name: kid.name,
     handle,
+    legalFirst: kid.name.split(/\s+/)[0] || kid.name,
+    legalLast: kid.name.split(/\s+/).slice(1).join(" ") || you.legalLast,
     age: Math.max(16, kid.age),
     bio,
     history: `Took the name after ${you.name} stepped back in year ${Math.floor((state.week - 1) / 52) + 1}.`,

@@ -1,10 +1,10 @@
 import { i as __toESM } from "../_runtime.mjs";
 import { L as require_react, v as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
-import { A as Bus, C as Landmark, D as Disc3, E as Ellipsis, M as Bell, N as Ban, O as CreditCard, P as ArrowUpRight, S as LayoutDashboard, T as Heart, _ as Play, a as User, b as Mail, c as ThumbsDown, d as Share2, f as Send, g as Plus, h as Radio, i as Users, j as Bookmark, k as ChartLine, l as SquarePlus, m as Repeat2, n as Wallet, p as Search, r as Video, s as ThumbsUp, t as X, u as Sparkles, v as Music2, w as House, x as Library, y as MessageCircle } from "../_libs/lucide-react.mjs";
+import { A as Briefcase, C as LayoutDashboard, D as CreditCard, E as Heart, M as Bell, N as Ban, O as Clapperboard, P as ArrowUpRight, S as Library, T as House, _ as Plus, a as User, b as MessageCircle, c as ThumbsDown, d as Share2, f as Settings, g as Radio, h as Repeat2, i as Video, j as Bookmark, k as ChartLine, l as SquarePlus, m as Search, n as Wrench, p as Send, r as Wallet, s as ThumbsUp, t as X, u as Sparkles, v as Play, w as Landmark, x as Mail, y as Music2 } from "../_libs/lucide-react.mjs";
 import { n as create, t as persist } from "../_libs/zustand.mjs";
 import { t as clsx } from "../_libs/clsx.mjs";
 import { t as twMerge } from "../_libs/tailwind-merge.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-XVA-rwbH.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-B_ctZjlW.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var SAVE_KEY = "musicstar.save.v7";
@@ -10356,6 +10356,20 @@ function GhostBtn({ children, onClick, disabled, className }) {
 		children
 	});
 }
+function DeskTabs({ items }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "sticky top-0 z-10 border-b border-border bg-bg/90 px-3 py-2 backdrop-blur md:px-6",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "mx-auto flex max-w-6xl gap-1 overflow-x-auto",
+			children: items.map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				type: "button",
+				onClick: it.onClick,
+				className: cn("min-h-10 shrink-0 rounded-full px-3 text-sm", it.active ? "bg-accent text-accent-fg" : "text-muted hover:bg-subtle hover:text-fg"),
+				children: it.label
+			}, it.id))
+		})
+	});
+}
 function TitleScreen({ onPlay }) {
 	const game = useGame((s) => s.game);
 	const newGame = useGame((s) => s.newGame);
@@ -12082,6 +12096,7 @@ function Charts() {
 function SocialHub() {
 	const game = useGame((s) => s.game);
 	const setOverlay = useGame((s) => s.setOverlay);
+	const setView = useGame((s) => s.setView);
 	const live = useGame((s) => s.live);
 	const roster = rosterOf(game);
 	const ownedViews = game.clips.filter((c) => c.owned).reduce((a, c) => a + c.views, 0);
@@ -12096,10 +12111,10 @@ function SocialHub() {
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 				className: "font-display text-3xl tracking-tight",
-				children: "Socials"
+				children: "Socials & Media"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-sm text-muted",
-				children: "TikTok, X, Instagram, Spotify, YouTube. Hits move together. Apply for verified after 100k per app and 50k Spotify monthly — it is not automatic."
+				children: "TikTok, X, Instagram, Spotify, YouTube, live, press. Hits move together. Apply for verified after 100k per app and 50k Spotify monthly — it is not automatic."
 			})] }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3",
@@ -12154,6 +12169,13 @@ function SocialHub() {
 							type: "youtube",
 							tab: "channel"
 						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppTile, {
+						name: "Press / PR",
+						kicker: "Campaigns",
+						stat: `${game.campaigns.length} live`,
+						copy: "TV, press, Reddit, radio. Heat is the only thing that keeps a single alive.",
+						onClick: () => setView("promo")
 					})
 				]
 			}),
@@ -19124,134 +19146,196 @@ function SkillsScreen() {
 		]
 	});
 }
-var ITEMS = [
+var HUBS = [
 	{
-		id: "mail",
-		label: "Inbox",
-		view: "mail"
+		id: "personal",
+		title: "Personal Life & Assets",
+		blurb: "Family, houses, jets, islands, health.",
+		icon: Heart,
+		items: [
+			{
+				label: "Family & Relationships",
+				hint: "Dating, Mom & Dad, kids, school",
+				view: "family"
+			},
+			{
+				label: "Real Estate & Travel",
+				hint: "Mansions, cars, jets, islands, vacations",
+				view: "life"
+			},
+			{
+				label: "Health & Wellness",
+				hint: "Energy, substances, vocal rest, rehab",
+				view: "health"
+			}
+		]
 	},
 	{
-		id: "promo",
-		label: "Promotion",
-		view: "promo"
+		id: "fame",
+		title: "Fame, Nightlife & Screen",
+		blurb: "Clubs, Hollywood, paid gigs, talent TV.",
+		icon: Clapperboard,
+		items: [
+			{
+				label: "Nightlife & VIP",
+				hint: "Booths, bottles, casino, afterparties",
+				view: "nightlife"
+			},
+			{
+				label: "Hollywood & OSTs",
+				hint: "Roles, voice work, soundtrack leads",
+				view: "hollywood"
+			},
+			{
+				label: "Paid Bookings",
+				hint: "Clubs, private concerts, corporate sets",
+				view: "gigs"
+			},
+			{
+				label: "Talent Shows",
+				hint: "Reality singing, judging, guest spots",
+				tab: "talent"
+			}
+		]
 	},
 	{
-		id: "awards",
-		label: "Awards",
-		view: "awards"
+		id: "business",
+		title: "Business, Law & Management",
+		blurb: "Skills, legal, security, entourage.",
+		icon: Briefcase,
+		items: [
+			{
+				label: "Artist Skills",
+				hint: "Vocals, writing, stage, media savvy",
+				view: "skills"
+			},
+			{
+				label: "Legal & Law Enforcement",
+				hint: "Charges, lawyers, bail, sentences",
+				view: "legal"
+			},
+			{
+				label: "Security & Entourage",
+				hint: "Guards, drivers, chefs, anti-pap",
+				view: "life"
+			}
+		]
 	},
 	{
-		id: "gigs",
-		label: "Paid gigs",
-		view: "gigs"
-	},
-	{
-		id: "life",
-		label: "Houses & cars",
-		view: "life"
-	},
-	{
-		id: "hollywood",
-		label: "Hollywood",
-		view: "hollywood"
-	},
-	{
-		id: "nightlife",
-		label: "Nightlife",
-		view: "nightlife"
-	},
-	{
-		id: "health",
-		label: "Health",
-		view: "health"
-	},
-	{
-		id: "legal",
-		label: "Legal",
-		view: "legal"
-	},
-	{
-		id: "merch",
-		label: "Merch site",
-		view: "merch"
-	},
-	{
-		id: "family",
-		label: "Family",
-		view: "family"
-	},
-	{
-		id: "skills",
-		label: "Skills",
-		view: "skills"
-	},
-	{
-		id: "books",
-		label: "Finances",
-		view: "books"
-	},
-	{
-		id: "label",
-		label: "Label / AGM"
-	},
-	{
-		id: "talent",
-		label: "Talent show"
-	},
-	{
-		id: "save",
-		label: "Save / load"
-	},
-	{
-		id: "settings",
-		label: "Settings"
-	},
-	{
-		id: "achievements",
-		label: "Achievements"
-	},
-	{
-		id: "leaders",
-		label: "Leaderboards"
-	},
-	{
-		id: "admin",
-		label: "Admin"
-	},
-	{
-		id: "editor",
-		label: "R2S Editor"
-	},
-	{
-		id: "cheats",
-		label: "Cheats"
-	},
-	{
-		id: "credits",
-		label: "Credits"
+		id: "system",
+		title: "System & Meta",
+		blurb: "Saves, settings, cheats, credits.",
+		icon: Wrench,
+		items: [
+			{
+				label: "Save / Load",
+				hint: "Slots and autosave",
+				tab: "save"
+			},
+			{
+				label: "Settings",
+				hint: "Difficulty, autosave, quit",
+				tab: "settings"
+			},
+			{
+				label: "Achievements",
+				hint: "Hardware and firsts",
+				tab: "achievements"
+			},
+			{
+				label: "Leaderboards",
+				hint: "Uploaded scores",
+				tab: "leaders"
+			},
+			{
+				label: "Cheats",
+				hint: "Testing console",
+				tab: "cheats"
+			},
+			{
+				label: "R2S Editor",
+				hint: "AI control, roster inspect",
+				tab: "editor"
+			},
+			{
+				label: "Admin",
+				hint: "Live world stats",
+				tab: "admin"
+			},
+			{
+				label: "Credits",
+				hint: "Created by Jayden Carter",
+				tab: "credits"
+			}
+		]
 	}
 ];
 function MoreScreen() {
 	const setView = useGame((s) => s.setView);
 	const moreTab = useGame((s) => s.moreTab);
 	const setMoreTab = useGame((s) => s.setMoreTab);
+	const [open, setOpen] = (0, import_react.useState)(moreTab && moreTab !== "home" ? hubForTab(moreTab) : null);
+	const go = (it) => {
+		if (it.view) setView(it.view);
+		else if (it.tab) setMoreTab(it.tab);
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "mx-auto grid max-w-4xl gap-4 p-4 md:p-6",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 				className: "font-display text-3xl",
-				children: "More"
-			}),
+				children: "Lifestyle & Hub"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-sm text-muted",
+				children: "Four desks. Daily loops live in the bar. This is the rest of the building."
+			})] }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "grid grid-cols-2 gap-2 sm:grid-cols-3",
-				children: ITEMS.map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-					onClick: () => it.view ? setView(it.view) : setMoreTab(it.id),
-					className: "min-h-14 rounded-xl border border-border bg-surface px-4 text-left text-sm font-medium hover:bg-elevated",
-					children: it.label
-				}, it.id))
+				className: "grid gap-3 md:grid-cols-2",
+				children: HUBS.map((hub) => {
+					const Icon = hub.icon;
+					const expanded = open === hub.id;
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+						className: cn("rounded-xl border border-border bg-surface p-4", expanded && "border-accent/40 md:col-span-2"),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => setOpen(expanded ? null : hub.id),
+							className: "flex w-full items-start gap-3 text-left",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "grid size-11 shrink-0 place-items-center rounded-lg bg-subtle",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { className: "size-5 text-accent" })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "min-w-0 flex-1",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "block font-display text-xl leading-tight",
+									children: hub.title
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "mt-1 block text-sm text-muted",
+									children: hub.blurb
+								})]
+							})]
+						}), expanded ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+							className: "mt-4 grid gap-2 sm:grid-cols-2",
+							children: hub.items.map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								type: "button",
+								onClick: () => go(it),
+								className: "flex min-h-14 w-full flex-col rounded-lg bg-subtle px-3 py-2 text-left hover:bg-elevated",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-sm font-medium",
+									children: it.label
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-xs text-muted",
+									children: it.hint
+								})]
+							}) }, it.label))
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "mt-3 text-xs text-muted",
+							children: hub.items.map((i) => i.label).join(" · ")
+						})]
+					}, hub.id);
+				})
 			}),
 			moreTab === "save" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Saves, {}),
-			moreTab === "settings" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings, {}),
+			moreTab === "settings" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings$1, {}),
 			moreTab === "achievements" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Achievements, {}),
 			moreTab === "leaders" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Leaders, {}),
 			moreTab === "admin" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Admin, {}),
@@ -19262,6 +19346,10 @@ function MoreScreen() {
 			moreTab === "talent" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TalentShow, {})
 		]
 	});
+}
+function hubForTab(tab) {
+	for (const h of HUBS) if (h.items.some((i) => i.tab === tab)) return h.id;
+	return null;
 }
 function Saves() {
 	const listSlots = useGame((s) => s.listSlots);
@@ -19295,7 +19383,7 @@ function Saves() {
 		})
 	});
 }
-function Settings() {
+function Settings$1() {
 	const game = useGame((s) => s.game);
 	const toggleAutosave = useGame((s) => s.toggleAutosave);
 	const setDifficulty = useGame((s) => s.setDifficulty);
@@ -19759,6 +19847,66 @@ function TalentShow() {
 				children: stage === "none" || stage === "final" ? "Enter · $8,000" : stage === "audition" ? "Face the judges" : "Go to the final"
 			})
 		]
+	});
+}
+function SystemSheet() {
+	const overlay = useGame((s) => s.overlay);
+	const setOverlay = useGame((s) => s.setOverlay);
+	const kind = overlay.type;
+	const page = {
+		saves: {
+			title: "Save / Load",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Saves, {})
+		},
+		settings: {
+			title: "Settings",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings$1, {})
+		},
+		cheats: {
+			title: "Cheats",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Cheats, {})
+		},
+		credits: {
+			title: "Credits",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Credits, {})
+		},
+		achievements: {
+			title: "Achievements",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Achievements, {})
+		},
+		leaderboards: {
+			title: "Leaderboards",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Leaders, {})
+		},
+		admin: {
+			title: "Admin",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Admin, {})
+		},
+		editor: {
+			title: "R2S Editor",
+			node: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Editor, {})
+		}
+	}[kind];
+	if (!page) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "fixed inset-0 z-40 grid place-items-end bg-bg/70 p-0 sm:place-items-center sm:p-4",
+		onClick: () => setOverlay({ type: "none" }),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			role: "dialog",
+			"aria-label": page.title,
+			className: "max-h-[88dvh] w-full max-w-lg overflow-auto rounded-t-2xl border border-border bg-surface p-4 shadow-2xl sm:rounded-2xl",
+			onClick: (e) => e.stopPropagation(),
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3 flex items-center justify-between",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-xs tracking-[0.16em] text-faint uppercase",
+					children: "Gear"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GhostBtn, {
+					onClick: () => setOverlay({ type: "none" }),
+					children: "Close"
+				})]
+			}), page.node]
+		})
 	});
 }
 function WikiPage({ artistId }) {
@@ -20381,108 +20529,109 @@ function CeremonyOverlay() {
 		})
 	});
 }
+var MUSIC_VIEWS = [
+	"studio",
+	"promo",
+	"merch",
+	"tours"
+];
+var CHART_VIEWS = ["charts", "awards"];
+var MONEY_VIEWS = [
+	"bank",
+	"books",
+	"career",
+	"roster"
+];
+var LIFE_VIEWS = [
+	"more",
+	"family",
+	"life",
+	"health",
+	"nightlife",
+	"hollywood",
+	"gigs",
+	"legal",
+	"skills"
+];
+var NAV = [
+	{
+		id: "hq",
+		short: "HQ",
+		full: "HQ",
+		icon: LayoutDashboard,
+		hub: "hq"
+	},
+	{
+		id: "studio",
+		short: "Music",
+		full: "Music & Promo",
+		icon: Music2,
+		hub: "music"
+	},
+	{
+		id: "charts",
+		short: "Charts",
+		full: "Charts & Awards",
+		icon: ChartLine,
+		hub: "charts"
+	},
+	{
+		id: "social",
+		short: "Socials",
+		full: "Socials & Media",
+		icon: Radio,
+		hub: "social"
+	},
+	{
+		id: "bank",
+		short: "Money",
+		full: "Finances & Label",
+		icon: Landmark,
+		hub: "money"
+	},
+	{
+		id: "more",
+		short: "Life",
+		full: "Lifestyle",
+		icon: Sparkles,
+		hub: "life"
+	}
+];
+function hubOf(view) {
+	if (MUSIC_VIEWS.includes(view)) return "music";
+	if (CHART_VIEWS.includes(view)) return "charts";
+	if (MONEY_VIEWS.includes(view)) return "money";
+	if (LIFE_VIEWS.includes(view) || view === "mail") return view === "mail" ? "hq" : "life";
+	if (view === "social") return "social";
+	return "hq";
+}
 function Shell() {
 	const game = useGame((s) => s.game);
 	const view = useGame((s) => s.view);
 	const overlay = useGame((s) => s.overlay);
 	const setView = useGame((s) => s.setView);
+	const setOverlay = useGame((s) => s.setOverlay);
+	const setMoreTab = useGame((s) => s.setMoreTab);
 	const nextWeek = useGame((s) => s.nextWeek);
 	const toasts = useGame((s) => s.toasts);
 	const checkout = useGame((s) => s.checkout);
 	const roster = rosterOf(game);
-	const tt = roster.reduce((a, x) => a + x.followers.tiktok, 0);
-	const nav = game.career === "artist" ? [
-		{
-			id: "hq",
-			label: "HQ",
-			icon: LayoutDashboard
-		},
-		{
-			id: "career",
-			label: "Career",
-			icon: Sparkles
-		},
-		{
-			id: "studio",
-			label: "Studio",
-			icon: Music2
-		},
-		{
-			id: "charts",
-			label: "Charts",
-			icon: ChartLine
-		},
-		{
-			id: "social",
-			label: "Socials",
-			icon: Radio
-		},
-		{
-			id: "tours",
-			label: "Tours",
-			icon: Bus
-		},
-		{
-			id: "bank",
-			label: "Bank",
-			icon: Landmark
-		},
-		{
-			id: "more",
-			label: "More",
-			icon: Ellipsis
+	const you = playerArtist(game) ?? roster[0];
+	const unread = unreadMail(game);
+	const title = game.career === "artist" ? you?.name ?? "Independent" : game.labelName;
+	const activeHub = hubOf(view);
+	const goNav = (item) => {
+		if (item.hub === "life") {
+			setMoreTab("home");
+			setView("more");
+			return;
 		}
-	] : [
-		{
-			id: "hq",
-			label: "HQ",
-			icon: LayoutDashboard
-		},
-		{
-			id: "roster",
-			label: "Roster",
-			icon: Users
-		},
-		{
-			id: "studio",
-			label: "Studio",
-			icon: Music2
-		},
-		{
-			id: "charts",
-			label: "Charts",
-			icon: ChartLine
-		},
-		{
-			id: "social",
-			label: "Socials",
-			icon: Radio
-		},
-		{
-			id: "tours",
-			label: "Tours",
-			icon: Bus
-		},
-		{
-			id: "bank",
-			label: "Bank",
-			icon: Landmark
-		},
-		{
-			id: "more",
-			label: "More",
-			icon: Ellipsis
-		}
-	];
-	const mobileNav = nav.filter((n) => [
-		"hq",
-		"studio",
-		"charts",
-		"social",
-		"bank",
-		"more"
-	].includes(n.id));
-	const title = game.career === "artist" ? roster[0]?.name ?? "Independent" : game.labelName;
+		setView(item.id);
+	};
+	const openProfile = () => {
+		if (game.career === "artist") setView("career");
+		else setView("roster");
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "flex min-h-dvh bg-bg text-fg",
 		children: [
@@ -20508,10 +20657,10 @@ function Shell() {
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
 						className: "grid gap-1 px-3",
-						children: nav.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-							onClick: () => setView(item.id),
-							className: cn("flex min-h-11 items-center gap-3 rounded-md px-3 text-sm", view === item.id ? "bg-subtle text-fg" : "text-muted hover:bg-subtle/60 hover:text-fg"),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "size-4" }), item.label]
+						children: NAV.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							onClick: () => goNav(item),
+							className: cn("flex min-h-11 items-center gap-3 rounded-md px-3 text-sm", activeHub === item.hub ? "bg-subtle text-fg" : "text-muted hover:bg-subtle/60 hover:text-fg"),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "size-4" }), item.full]
 						}, item.id))
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -20526,16 +20675,9 @@ function Shell() {
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex justify-between",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "TikTok reach" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "tabular-nums text-fg",
-									children: compact(tt)
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex justify-between",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Popularity" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 									className: "tabular-nums text-fg",
-									children: Math.round(roster[0]?.popularity ?? 0)
+									children: Math.round(you?.popularity ?? 0)
 								})]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -20544,14 +20686,6 @@ function Shell() {
 									className: "tabular-nums text-fg",
 									children: Math.round(game.creditScore)
 								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								onClick: () => setView("mail"),
-								className: "flex justify-between text-left hover:text-fg",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Inbox" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "tabular-nums text-fg",
-									children: (game.mail ?? []).filter((m) => !m.read).length
-								})]
 							})
 						]
 					})
@@ -20559,64 +20693,169 @@ function Shell() {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "flex min-w-0 flex-1 flex-col",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-					className: "flex items-center gap-3 border-b border-border px-4 py-3 md:px-6",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Disc3, { className: "size-5 text-accent" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "min-w-0 flex-1",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "truncate text-sm font-medium",
-								children: weekLabel(game.week)
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "text-xs text-muted lg:hidden",
-								children: title
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							className: "tabular-nums text-sm font-medium",
-							children: money(game.cash)
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-							onClick: nextWeek,
-							className: "min-h-11 rounded-md bg-accent px-3 text-sm font-medium text-accent-fg",
-							children: "Next week"
-						})
-					]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
-					className: "flex-1 overflow-auto pb-24 lg:pb-8",
-					children: [
-						view === "hq" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dashboard, {}),
-						view === "roster" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Roster, {}),
-						view === "career" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Career, {}),
-						view === "studio" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Studio$1, {}),
-						view === "charts" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Charts, {}),
-						view === "social" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SocialHub, {}),
-						view === "books" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Books, {}),
-						view === "tours" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToursScreen, {}),
-						view === "promo" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PromoScreen, {}),
-						view === "awards" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AwardsScreen, {}),
-						view === "bank" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BankScreen, {}),
-						view === "life" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LifeScreen, {}),
-						view === "merch" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MerchScreen, {}),
-						view === "family" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FamilyScreen, {}),
-						view === "skills" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SkillsScreen, {}),
-						view === "mail" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MailScreen, {}),
-						view === "hollywood" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HollywoodScreen, {}),
-						view === "legal" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegalScreen, {}),
-						view === "health" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HealthScreen, {}),
-						view === "nightlife" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NightlifeScreen, {}),
-						view === "gigs" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GigsScreen, {}),
-						view === "more" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MoreScreen, {})
-					]
-				})]
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+						className: "flex items-center gap-2 border-b border-border px-3 py-2 md:gap-3 md:px-6",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								type: "button",
+								onClick: openProfile,
+								className: "relative grid size-11 shrink-0 place-items-center",
+								"aria-label": "Profile",
+								children: you ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArtistAvatar, {
+									spec: you.avatar,
+									size: 36
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "grid size-9 place-items-center rounded-full bg-subtle text-xs",
+									children: "You"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+								type: "button",
+								onClick: () => setView("mail"),
+								className: "relative grid size-11 shrink-0 place-items-center rounded-md hover:bg-subtle",
+								"aria-label": unread ? `Inbox, ${unread} unread` : "Inbox",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mail, { className: "size-5" }), unread > 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "absolute top-1.5 right-1.5 grid min-w-4 place-items-center rounded-full bg-accent px-1 text-[10px] font-medium text-accent-fg",
+									children: unread > 9 ? "9+" : unread
+								}) : null]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "min-w-0 flex-1",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "truncate text-sm font-medium",
+									children: weekLabel(game.week)
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "truncate text-xs text-muted lg:hidden",
+									children: title
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "max-w-20 truncate tabular-nums text-sm font-medium sm:max-w-none",
+								children: money(game.cash)
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								type: "button",
+								onClick: nextWeek,
+								className: "min-h-11 rounded-md bg-accent px-2.5 text-sm font-medium text-accent-fg sm:px-3",
+								children: "Next week"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(GearMenu, { setOverlay })
+						]
+					}),
+					activeHub === "music" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DeskTabs, { items: [
+						{
+							id: "studio",
+							label: "Studio",
+							active: view === "studio",
+							onClick: () => setView("studio")
+						},
+						{
+							id: "promo",
+							label: "Promo",
+							active: view === "promo",
+							onClick: () => setView("promo")
+						},
+						{
+							id: "videos",
+							label: "Videos",
+							active: overlay.type === "youtube" && overlay.tab === "studio",
+							onClick: () => setOverlay({
+								type: "youtube",
+								tab: "studio"
+							})
+						},
+						{
+							id: "merch",
+							label: "Merch",
+							active: view === "merch",
+							onClick: () => setView("merch")
+						},
+						{
+							id: "tours",
+							label: "Tours",
+							active: view === "tours",
+							onClick: () => setView("tours")
+						}
+					] }),
+					activeHub === "charts" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DeskTabs, { items: [{
+						id: "charts",
+						label: "Boards",
+						active: view === "charts",
+						onClick: () => setView("charts")
+					}, {
+						id: "awards",
+						label: "Awards",
+						active: view === "awards",
+						onClick: () => setView("awards")
+					}] }),
+					activeHub === "money" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DeskTabs, { items: [
+						{
+							id: "bank",
+							label: "Bank",
+							active: view === "bank",
+							onClick: () => setView("bank")
+						},
+						{
+							id: "books",
+							label: "History",
+							active: view === "books",
+							onClick: () => setView("books")
+						},
+						{
+							id: "career",
+							label: game.career === "label" ? "Label / AGM" : "Deals",
+							active: view === "career",
+							onClick: () => setView("career")
+						},
+						...game.career === "label" ? [{
+							id: "roster",
+							label: "Roster",
+							active: view === "roster",
+							onClick: () => setView("roster")
+						}] : []
+					] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
+						className: "flex-1 overflow-auto pb-24 lg:pb-8",
+						children: [
+							view === "hq" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dashboard, {}),
+							view === "roster" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Roster, {}),
+							view === "career" && (game.career === "artist" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Career, {}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "mx-auto grid max-w-3xl gap-4 p-4 md:p-6",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+									className: "font-display text-3xl",
+									children: "Label / AGM"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LabelOps, {})]
+							})),
+							view === "studio" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Studio$1, {}),
+							view === "charts" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Charts, {}),
+							view === "social" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SocialHub, {}),
+							view === "books" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Books, {}),
+							view === "tours" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToursScreen, {}),
+							view === "promo" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PromoScreen, {}),
+							view === "awards" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AwardsScreen, {}),
+							view === "bank" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BankScreen, {}),
+							view === "life" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LifeScreen, {}),
+							view === "merch" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MerchScreen, {}),
+							view === "family" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FamilyScreen, {}),
+							view === "skills" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SkillsScreen, {}),
+							view === "mail" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MailScreen, {}),
+							view === "hollywood" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HollywoodScreen, {}),
+							view === "legal" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LegalScreen, {}),
+							view === "health" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HealthScreen, {}),
+							view === "nightlife" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NightlifeScreen, {}),
+							view === "gigs" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GigsScreen, {}),
+							view === "more" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MoreScreen, {})
+						]
+					})
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
 				className: "fixed inset-x-0 bottom-0 z-20 grid grid-cols-6 border-t border-border bg-surface/95 px-1 py-1 backdrop-blur lg:hidden",
-				children: mobileNav.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					onClick: () => setView(item.id),
-					className: cn("flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px]", view === item.id ? "text-accent" : "text-muted"),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "size-4" }), item.label]
+				children: NAV.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+					onClick: () => goNav(item),
+					className: cn("flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] leading-tight", activeHub === item.hub ? "text-accent" : "text-muted"),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "size-4" }), item.short]
 				}, item.id))
 			}),
 			overlay.type === "tiktok" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TikTokApp, {}),
@@ -20630,6 +20869,7 @@ function Shell() {
 			overlay.type === "wiki" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WikiPage, { artistId: overlay.artistId }),
 			checkout ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PaySheet, {}) : null,
 			overlay.type === "ceremony" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CeremonyOverlay, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SystemSheet, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "pointer-events-none fixed top-16 right-4 z-50 grid gap-2",
 				children: toasts.map((t) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -20638,6 +20878,55 @@ function Shell() {
 				}, t.id))
 			})
 		]
+	});
+}
+function GearMenu({ setOverlay }) {
+	const [open, setOpen] = (0, import_react.useState)(false);
+	const ref = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => {
+		if (!open) return;
+		const onDoc = (e) => {
+			if (!ref.current?.contains(e.target)) setOpen(false);
+		};
+		document.addEventListener("mousedown", onDoc);
+		return () => document.removeEventListener("mousedown", onDoc);
+	}, [open]);
+	const pick = (type) => {
+		setOpen(false);
+		setOverlay({ type });
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "relative",
+		ref,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+			type: "button",
+			onClick: () => setOpen((v) => !v),
+			className: "grid size-11 place-items-center rounded-md hover:bg-subtle",
+			"aria-label": "Settings",
+			"aria-expanded": open,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings, { className: "size-5" })
+		}), open ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "absolute top-12 right-0 z-30 w-52 overflow-hidden rounded-xl border border-border bg-elevated shadow-xl",
+			children: [
+				{
+					type: "saves",
+					label: "Save / Load"
+				},
+				{
+					type: "settings",
+					label: "Settings"
+				},
+				{
+					type: "cheats",
+					label: "Cheats"
+				}
+			].map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				type: "button",
+				onClick: () => pick(it.type),
+				className: "flex min-h-11 w-full items-center px-4 text-left text-sm hover:bg-subtle",
+				children: it.label
+			}, it.type))
+		}) : null]
 	});
 }
 function GameApp() {

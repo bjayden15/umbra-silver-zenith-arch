@@ -1,6 +1,6 @@
 import { ArrowUpRight, Radio, Sparkles } from "lucide-react";
 import { compact, money, signedMoney } from "@/lib/game/format";
-import { fourWeekStreams, creditLine, featName, playerArtist, playerSongs, rosterOf, unreadMail } from "@/lib/game/sim";
+import { fourWeekStreams, creditLine, featName, legalNameOf, playerArtist, playerSongs, rosterOf, unreadMail } from "@/lib/game/sim";
 import { useGame } from "@/lib/game/store";
 import { TAGLINE } from "@/lib/game/types";
 import { GhostBtn, Panel, Pill, PrimaryBtn } from "./bits";
@@ -35,10 +35,14 @@ export function Dashboard() {
         <h1 className="font-display text-3xl tracking-tight">{game.career === "artist" ? you?.name : game.labelName}</h1>
         {you ? (
           <p className="text-sm text-muted">
+            {legalNameOf(you) !== you.name ? `Legal ${legalNameOf(you)} · ` : ""}
             Age {you.age} · {you.hometown} · popularity {Math.round(you.popularity)} · Spotify monthly {compact(monthly)}{" "}
             (last 4 weeks: {compact(four)})
           </p>
         ) : null}
+        <p className="mt-1 text-xs text-muted">
+          Tip: monthly listeners are the last four weeks of streams — nothing more. Years and weeks both tick.
+        </p>
       </div>
 
       {tutorial < 5 && (

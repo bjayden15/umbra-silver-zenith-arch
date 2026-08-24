@@ -9,6 +9,7 @@ import { VerifiedBadge } from "./VerifiedBadge";
 export function SocialHub() {
   const game = useGame((s) => s.game)!;
   const setOverlay = useGame((s) => s.setOverlay);
+  const setView = useGame((s) => s.setView);
   const live = useGame((s) => s.live);
   const roster = rosterOf(game);
   const ownedViews = game.clips.filter((c) => c.owned).reduce((a, c) => a + c.views, 0);
@@ -22,10 +23,10 @@ export function SocialHub() {
   return (
     <div className="mx-auto grid max-w-6xl gap-4 p-4 md:p-6">
       <div>
-        <h1 className="font-display text-3xl tracking-tight">Socials</h1>
+        <h1 className="font-display text-3xl tracking-tight">Socials & Media</h1>
         <p className="text-sm text-muted">
-          TikTok, X, Instagram, Spotify, YouTube. Hits move together. Apply for verified after 100k per app and
-          50k Spotify monthly — it is not automatic.
+          TikTok, X, Instagram, Spotify, YouTube, live, press. Hits move together. Apply for verified after 100k per app
+          and 50k Spotify monthly — it is not automatic.
         </p>
       </div>
 
@@ -55,7 +56,7 @@ export function SocialHub() {
           name="Spotify"
           kicker="Artist channel"
           stat={`${compact(monthly)} monthly`}
-          copy="Monthly listeners equal the last four weeks of streams. No promo, they fall."
+          copy="Monthly listeners are the last four weeks of streams — nothing more. Years and weeks both tick."
           onClick={() => setOverlay({ type: "spotify", tab: "home", artistId: roster[0]?.id })}
         />
         <AppTile
@@ -64,6 +65,13 @@ export function SocialHub() {
           stat={`${compact(yt)} subs`}
           copy="Real channel page — Home, Videos, Shorts, Live, Releases, Playlists, About."
           onClick={() => setOverlay({ type: "youtube", tab: "channel" })}
+        />
+        <AppTile
+          name="Press / PR"
+          kicker="Campaigns"
+          stat={`${game.campaigns.length} live`}
+          copy="TV, press, Reddit, radio. Heat is the only thing that keeps a single alive."
+          onClick={() => setView("promo")}
         />
       </div>
 

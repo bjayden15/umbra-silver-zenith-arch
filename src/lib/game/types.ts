@@ -236,6 +236,8 @@ export type Artist = {
   id: string;
   name: string;
   handle: string;
+  legalFirst: string;
+  legalLast: string;
   genre: GenreId;
   kind: "solo" | "band";
   age: number;

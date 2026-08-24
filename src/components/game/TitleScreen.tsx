@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CITIES, GENRES } from "@/lib/game/catalog";
-import { CREATOR, GAME_SUBTITLE, GAME_TITLE, TAGLINE, type GenreId, type GenderId, type OrientationId } from "@/lib/game/types";
+import { CREATOR, GAME_TITLE, TAGLINE, type GenreId, type GenderId, type OrientationId } from "@/lib/game/types";
 import { useGame } from "@/lib/game/store";
 import { GhostBtn, PrimaryBtn } from "./bits";
 
@@ -12,11 +12,13 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
   const listSlots = useGame((s) => s.listSlots);
   const [mode, setMode] = useState<"idle" | "pick" | "label" | "artist" | "load" | "credits">("idle");
   const [labelName, setLabelName] = useState("Harbor Records");
-  const [artistName, setArtistName] = useState("Nova Vex");
+  const [legalFirst, setLegalFirst] = useState("Jayden");
+  const [legalLast, setLegalLast] = useState("Carter");
+  const [artistName, setArtistName] = useState("Jayden");
   const [genre, setGenre] = useState<GenreId>("altpop");
   const [city, setCity] = useState("Atlanta");
   const [age, setAge] = useState(21);
-  const [gender, setGender] = useState<GenderId>("female");
+  const [gender, setGender] = useState<GenderId>("male");
   const [orientation, setOrientation] = useState<OrientationId>("straight");
   const [database, setDatabase] = useState<"normal" | "real">("real");
   const slots = mode === "load" ? listSlots() : [];
@@ -33,7 +35,7 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
       <Vinyl />
       <div className="relative mx-auto flex min-h-dvh max-w-5xl flex-col justify-between px-5 py-8 md:px-10 md:py-12">
         <p className="text-xs font-medium tracking-[0.22em] text-muted uppercase">
-          {GAME_SUBTITLE} · Created by {CREATOR}
+          Created by {CREATOR}
         </p>
         <div className="max-w-xl">
           <h1 className="font-display text-5xl leading-[0.95] tracking-[-0.03em] text-fg md:text-7xl">
@@ -44,8 +46,7 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
           <p className="mt-3 font-display text-xl text-accent md:text-2xl">{TAGLINE}</p>
           <p className="mt-4 max-w-md text-base leading-relaxed text-muted">
             Run a label or be the act. Break songs on TikTok, grow X and Instagram, chart on Billboard 100,
-            stream on Spotify. Songs die without promo. Monthly listeners are the last four weeks — nothing
-            more. Years and weeks both tick.
+            stream on Spotify. Songs die without promo.
           </p>
           {mode === "idle" ? (
             <div className="mt-8 flex flex-wrap gap-3">
@@ -65,7 +66,6 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
             <div className="mt-8 max-w-md rounded-xl border border-border bg-surface p-5">
               <p className="text-xs tracking-[0.18em] text-muted uppercase">Credits</p>
               <p className="mt-2 font-display text-2xl">{GAME_TITLE}</p>
-              <p className="text-sm text-muted">{GAME_SUBTITLE}</p>
               <p className="mt-4 text-sm">
                 Created by <span className="text-fg">{CREATOR}</span> only.
               </p>
@@ -124,7 +124,18 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
                 if (mode === "label") {
                   newGame({ career: "label", labelName, city, database });
                 } else {
-                  newGame({ career: "artist", name: artistName, genre, city, age, database, gender, orientation });
+                  newGame({
+                    career: "artist",
+                    name: artistName,
+                    legalFirst,
+                    legalLast,
+                    genre,
+                    city,
+                    age,
+                    database,
+                    gender,
+                    orientation,
+                  });
                 }
                 onPlay();
               }}
@@ -141,14 +152,37 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
                 </label>
               ) : (
                 <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="grid gap-1 text-xs text-muted">
+                      Legal first name
+                      <input
+                        value={legalFirst}
+                        onChange={(e) => setLegalFirst(e.target.value)}
+                        className="h-11 rounded-md border border-border bg-surface px-3 text-sm text-fg outline-none focus:border-accent"
+                        maxLength={20}
+                        autoComplete="given-name"
+                      />
+                    </label>
+                    <label className="grid gap-1 text-xs text-muted">
+                      Legal last name
+                      <input
+                        value={legalLast}
+                        onChange={(e) => setLegalLast(e.target.value)}
+                        className="h-11 rounded-md border border-border bg-surface px-3 text-sm text-fg outline-none focus:border-accent"
+                        maxLength={24}
+                        autoComplete="family-name"
+                      />
+                    </label>
+                  </div>
                   <label className="grid gap-1 text-xs text-muted">
-                    Artist name
+                    Stage name
                     <input
                       value={artistName}
                       onChange={(e) => setArtistName(e.target.value)}
                       className="h-11 rounded-md border border-border bg-surface px-3 text-sm text-fg outline-none focus:border-accent"
                       maxLength={28}
                     />
+                    <span className="text-[11px] text-faint">The name on the charts. Legal stays on the wiki.</span>
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="grid gap-1 text-xs text-muted">
@@ -185,8 +219,8 @@ export function TitleScreen({ onPlay }: { onPlay: () => void }) {
                         onChange={(e) => setGender(e.target.value as GenderId)}
                         className="h-11 rounded-md border border-border bg-surface px-3 text-sm text-fg outline-none focus:border-accent"
                       >
-                        <option value="female">Female</option>
                         <option value="male">Male</option>
+                        <option value="female">Female</option>
                       </select>
                     </label>
                     <label className="grid gap-1 text-xs text-muted">

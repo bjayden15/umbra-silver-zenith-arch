@@ -280,6 +280,18 @@ export function blankProfiles(handle: string, bio: string, avatar: Artist["avata
   return { tiktok: one(), x: one(), instagram: one(), youtube: one(), spotify: one() };
 }
 
+export function splitLegalName(name: string): { first: string; last: string } {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: "Jayden", last: "Carter" };
+  if (parts.length === 1) return { first: parts[0], last: "" };
+  return { first: parts[0], last: parts.slice(1).join(" ") };
+}
+
+export function legalNameOf(artist: Artist): string {
+  const full = `${artist.legalFirst ?? ""} ${artist.legalLast ?? ""}`.trim();
+  return full || artist.name;
+}
+
 export function ensureArtistExtras(artist: Artist) {
   if (!artist.profiles) artist.profiles = blankProfiles(artist.handle, artist.bio, artist.avatar);
   if (typeof artist.popularity !== "number") artist.popularity = 0;
@@ -287,6 +299,12 @@ export function ensureArtistExtras(artist: Artist) {
   for (const p of ["tiktok", "x", "instagram", "youtube", "spotify"] as const) {
     if (!artist.profiles[p]) artist.profiles[p] = { handle: artist.handle, bio: artist.bio, avatar: { ...artist.avatar } };
   }
+  if (!artist.legalFirst) {
+    const split = splitLegalName(artist.name);
+    artist.legalFirst = split.first;
+    artist.legalLast = artist.legalLast ?? split.last;
+  }
+  if (artist.legalLast === undefined) artist.legalLast = "";
   ensureHealth(artist);
   ensureFamily(artist);
 }
@@ -369,10 +387,13 @@ function makeSound(state: GameState, name: string, artistName: string, songId: s
 }
 
 function fromSeed(state: GameState, seed: ReturnType<typeof generateArtist>, extra: Partial<Artist> = {}): Artist {
+  const legal = splitLegalName(seed.name);
   const artist: Artist = {
     id: nid(state, "a"),
     name: seed.name,
     handle: seed.handle,
+    legalFirst: seed.kind === "band" ? seed.name : legal.first,
+    legalLast: seed.kind === "band" ? "" : legal.last,
     genre: seed.genre,
     kind: seed.kind,
     age: seed.age,
@@ -509,6 +530,8 @@ export type NewGameInput = {
   career: "label" | "artist";
   labelName?: string;
   name?: string;
+  legalFirst?: string;
+  legalLast?: string;
   genre?: GenreId;
   city: string;
   handle?: string;
@@ -975,8 +998,11 @@ export function createInitialState(input: NewGameInput, seedNum?: number): GameS
   }
 
   populateWorld(state, rng);
-  const name = (input.name ?? "").trim() || "New Act";
-  const handle = (input.handle?.trim() || handleize(name) || "artist").slice(0, 16);
+  const name = (input.name ?? "").trim() || "Jayden";
+  const handle = (input.handle?.trim() || handleize(name) || "jayden").slice(0, 16);
+  const split = splitLegalName(name);
+  const legalFirst = (input.legalFirst ?? "").trim() || split.first;
+  const legalLast = (input.legalLast ?? "").trim() || (input.legalFirst ? "" : split.last || "Carter");
   const you = fromSeed(
     state,
     {
@@ -1005,7 +1031,18 @@ export function createInitialState(input: NewGameInput, seedNum?: number): GameS
       followers: { tiktok: 820, x: 540, instagram: 710, youtube: 240 },
       avatar: makeAvatar(rng),
     },
-    { signed: false, labelId: null, royalty: 0.85, wage: 0, monthlyListeners: 0, followingX: 120, gender: input.gender ?? "female", orientation: input.orientation ?? "straight" },
+    {
+      signed: false,
+      labelId: null,
+      royalty: 0.85,
+      wage: 0,
+      monthlyListeners: 0,
+      followingX: 120,
+      gender: input.gender ?? "male",
+      orientation: input.orientation ?? "straight",
+      legalFirst,
+      legalLast,
+    },
   );
   you.weeklyStreamHistory = [0, 0, 0, 0];
   syncMonthly(you);
@@ -1016,7 +1053,7 @@ export function createInitialState(input: NewGameInput, seedNum?: number): GameS
   pushNotif(state, {
     tone: "info",
     title: `${you.name} is unsigned`,
-    body: "Write a record, post the sound, grow every app. Spotify monthly is the last four weeks of streams — no promo, no numbers.",
+    body: "Write a record, post the sound, grow every app. Spotify monthly listeners are the last four weeks of streams — nothing more. Years and weeks both tick.",
   });
   pushMail(state, {
     kind: "press",

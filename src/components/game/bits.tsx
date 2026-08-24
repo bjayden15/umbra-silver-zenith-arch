@@ -144,3 +144,29 @@ export function GhostBtn({
     </button>
   );
 }
+
+export function DeskTabs({
+  items,
+}: {
+  items: { id: string; label: string; active?: boolean; onClick: () => void }[];
+}) {
+  return (
+    <div className="sticky top-0 z-10 border-b border-border bg-bg/90 px-3 py-2 backdrop-blur md:px-6">
+      <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto">
+        {items.map((it) => (
+          <button
+            key={it.id}
+            type="button"
+            onClick={it.onClick}
+            className={cn(
+              "min-h-10 shrink-0 rounded-full px-3 text-sm",
+              it.active ? "bg-accent text-accent-fg" : "text-muted hover:bg-subtle hover:text-fg",
+            )}
+          >
+            {it.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

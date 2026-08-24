@@ -1,55 +1,150 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import {
+  Briefcase,
+  Clapperboard,
+  Heart,
+  Wrench,
+} from "lucide-react";
 import { compact, money } from "@/lib/game/format";
 import { ceoScore, netWorth, playerArtist, rosterOf } from "@/lib/game/sim";
 import { useGame } from "@/lib/game/store";
-import { CREATOR, GAME_SUBTITLE, GAME_TITLE, TAGLINE, VERIFY_AT } from "@/lib/game/types";
+import type { ViewId } from "@/lib/game/types";
+import { CREATOR, GAME_TITLE, TAGLINE, VERIFY_AT } from "@/lib/game/types";
 import { ACHIEVEMENTS } from "@/lib/game/world";
 import { GhostBtn, Panel, Pill, PrimaryBtn } from "./bits";
+import { cn } from "@/lib/utils";
 
-const ITEMS: { id: string; label: string; view?: "promo" | "awards" | "life" | "merch" | "family" | "skills" | "books" | "mail" | "hollywood" | "legal" | "health" | "nightlife" | "gigs" }[] = [
-  { id: "mail", label: "Inbox", view: "mail" },
-  { id: "promo", label: "Promotion", view: "promo" },
-  { id: "awards", label: "Awards", view: "awards" },
-  { id: "gigs", label: "Paid gigs", view: "gigs" },
-  { id: "life", label: "Houses & cars", view: "life" },
-  { id: "hollywood", label: "Hollywood", view: "hollywood" },
-  { id: "nightlife", label: "Nightlife", view: "nightlife" },
-  { id: "health", label: "Health", view: "health" },
-  { id: "legal", label: "Legal", view: "legal" },
-  { id: "merch", label: "Merch site", view: "merch" },
-  { id: "family", label: "Family", view: "family" },
-  { id: "skills", label: "Skills", view: "skills" },
-  { id: "books", label: "Finances", view: "books" },
-  { id: "label", label: "Label / AGM" },
-  { id: "talent", label: "Talent show" },
-  { id: "save", label: "Save / load" },
-  { id: "settings", label: "Settings" },
-  { id: "achievements", label: "Achievements" },
-  { id: "leaders", label: "Leaderboards" },
-  { id: "admin", label: "Admin" },
-  { id: "editor", label: "R2S Editor" },
-  { id: "cheats", label: "Cheats" },
-  { id: "credits", label: "Credits" },
+type HubItem = {
+  label: string;
+  hint: string;
+  view?: ViewId;
+  tab?: string;
+};
+
+type HubCard = {
+  id: string;
+  title: string;
+  blurb: string;
+  icon: typeof Heart;
+  items: HubItem[];
+};
+
+const HUBS: HubCard[] = [
+  {
+    id: "personal",
+    title: "Personal Life & Assets",
+    blurb: "Family, houses, jets, islands, health.",
+    icon: Heart,
+    items: [
+      { label: "Family & Relationships", hint: "Dating, Mom & Dad, kids, school", view: "family" },
+      { label: "Real Estate & Travel", hint: "Mansions, cars, jets, islands, vacations", view: "life" },
+      { label: "Health & Wellness", hint: "Energy, substances, vocal rest, rehab", view: "health" },
+    ],
+  },
+  {
+    id: "fame",
+    title: "Fame, Nightlife & Screen",
+    blurb: "Clubs, Hollywood, paid gigs, talent TV.",
+    icon: Clapperboard,
+    items: [
+      { label: "Nightlife & VIP", hint: "Booths, bottles, casino, afterparties", view: "nightlife" },
+      { label: "Hollywood & OSTs", hint: "Roles, voice work, soundtrack leads", view: "hollywood" },
+      { label: "Paid Bookings", hint: "Clubs, private concerts, corporate sets", view: "gigs" },
+      { label: "Talent Shows", hint: "Reality singing, judging, guest spots", tab: "talent" },
+    ],
+  },
+  {
+    id: "business",
+    title: "Business, Law & Management",
+    blurb: "Skills, legal, security, entourage.",
+    icon: Briefcase,
+    items: [
+      { label: "Artist Skills", hint: "Vocals, writing, stage, media savvy", view: "skills" },
+      { label: "Legal & Law Enforcement", hint: "Charges, lawyers, bail, sentences", view: "legal" },
+      { label: "Security & Entourage", hint: "Guards, drivers, chefs, anti-pap", view: "life" },
+    ],
+  },
+  {
+    id: "system",
+    title: "System & Meta",
+    blurb: "Saves, settings, cheats, credits.",
+    icon: Wrench,
+    items: [
+      { label: "Save / Load", hint: "Slots and autosave", tab: "save" },
+      { label: "Settings", hint: "Difficulty, autosave, quit", tab: "settings" },
+      { label: "Achievements", hint: "Hardware and firsts", tab: "achievements" },
+      { label: "Leaderboards", hint: "Uploaded scores", tab: "leaders" },
+      { label: "Cheats", hint: "Testing console", tab: "cheats" },
+      { label: "R2S Editor", hint: "AI control, roster inspect", tab: "editor" },
+      { label: "Admin", hint: "Live world stats", tab: "admin" },
+      { label: "Credits", hint: "Created by Jayden Carter", tab: "credits" },
+    ],
+  },
 ];
 
 export function MoreScreen() {
   const setView = useGame((s) => s.setView);
   const moreTab = useGame((s) => s.moreTab);
   const setMoreTab = useGame((s) => s.setMoreTab);
+  const [open, setOpen] = useState<string | null>(moreTab && moreTab !== "home" ? hubForTab(moreTab) : null);
+
+  const go = (it: HubItem) => {
+    if (it.view) setView(it.view);
+    else if (it.tab) setMoreTab(it.tab);
+  };
 
   return (
     <div className="mx-auto grid max-w-4xl gap-4 p-4 md:p-6">
-      <h1 className="font-display text-3xl">More</h1>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {ITEMS.map((it) => (
-          <button
-            key={it.id}
-            onClick={() => (it.view ? setView(it.view) : setMoreTab(it.id))}
-            className="min-h-14 rounded-xl border border-border bg-surface px-4 text-left text-sm font-medium hover:bg-elevated"
-          >
-            {it.label}
-          </button>
-        ))}
+      <div>
+        <h1 className="font-display text-3xl">Lifestyle & Hub</h1>
+        <p className="text-sm text-muted">Four desks. Daily loops live in the bar. This is the rest of the building.</p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {HUBS.map((hub) => {
+          const Icon = hub.icon;
+          const expanded = open === hub.id;
+          return (
+            <section
+              key={hub.id}
+              className={cn(
+                "rounded-xl border border-border bg-surface p-4",
+                expanded && "border-accent/40 md:col-span-2",
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => setOpen(expanded ? null : hub.id)}
+                className="flex w-full items-start gap-3 text-left"
+              >
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-subtle">
+                  <Icon className="size-5 text-accent" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display text-xl leading-tight">{hub.title}</span>
+                  <span className="mt-1 block text-sm text-muted">{hub.blurb}</span>
+                </span>
+              </button>
+              {expanded ? (
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {hub.items.map((it) => (
+                    <li key={it.label}>
+                      <button
+                        type="button"
+                        onClick={() => go(it)}
+                        className="flex min-h-14 w-full flex-col rounded-lg bg-subtle px-3 py-2 text-left hover:bg-elevated"
+                      >
+                        <span className="text-sm font-medium">{it.label}</span>
+                        <span className="text-xs text-muted">{it.hint}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-xs text-muted">{hub.items.map((i) => i.label).join(" · ")}</p>
+              )}
+            </section>
+          );
+        })}
       </div>
       {moreTab === "save" && <Saves />}
       {moreTab === "settings" && <Settings />}
@@ -65,7 +160,14 @@ export function MoreScreen() {
   );
 }
 
-function Saves() {
+function hubForTab(tab: string) {
+  for (const h of HUBS) {
+    if (h.items.some((i) => i.tab === tab)) return h.id;
+  }
+  return null;
+}
+
+export function Saves() {
   const listSlots = useGame((s) => s.listSlots);
   const saveSlot = useGame((s) => s.saveSlot);
   const loadSlot = useGame((s) => s.loadSlot);
@@ -92,7 +194,7 @@ function Saves() {
   );
 }
 
-function Settings() {
+export function Settings() {
   const game = useGame((s) => s.game)!;
   const toggleAutosave = useGame((s) => s.toggleAutosave);
   const setDifficulty = useGame((s) => s.setDifficulty);
@@ -137,7 +239,7 @@ function Settings() {
   );
 }
 
-function Achievements() {
+export function Achievements() {
   const game = useGame((s) => s.game)!;
   return (
     <Panel title="Achievements">
@@ -159,7 +261,7 @@ function Achievements() {
   );
 }
 
-function Leaders() {
+export function Leaders() {
   const upload = useGame((s) => s.uploadLeaderboard);
   let rows: { name: string; score: number; week: number }[] = [];
   try {
@@ -189,7 +291,7 @@ function Leaders() {
   );
 }
 
-function Admin() {
+export function Admin() {
   const game = useGame((s) => s.game)!;
   const you = playerArtist(game);
   return (
@@ -232,7 +334,7 @@ function Admin() {
   );
 }
 
-function Editor() {
+export function Editor() {
   const game = useGame((s) => s.game)!;
   const toggleAi = useGame((s) => s.toggleAi);
   const roster = rosterOf(game);
@@ -253,7 +355,7 @@ function Editor() {
   );
 }
 
-function Cheats() {
+export function Cheats() {
   const cheat = useGame((s) => s.cheat);
   return (
     <Panel title="Cheats · testing">
@@ -273,11 +375,10 @@ function Cheats() {
   );
 }
 
-function Credits() {
+export function Credits() {
   return (
     <Panel title="Credits">
       <p className="font-display text-2xl">{GAME_TITLE}</p>
-      <p className="text-sm text-muted">{GAME_SUBTITLE}</p>
       <p className="mt-3 text-sm">{TAGLINE}</p>
       <p className="mt-4 text-sm">
         Created by <span className="font-medium">{CREATOR}</span> only.
@@ -286,7 +387,7 @@ function Credits() {
   );
 }
 
-function LabelOps() {
+export function LabelOps() {
   const game = useGame((s) => s.game)!;
   const invest = useGame((s) => s.invest);
   const sponsor = useGame((s) => s.sponsor);
@@ -388,7 +489,7 @@ function LabelOps() {
   );
 }
 
-function TalentShow() {
+export function TalentShow() {
   const game = useGame((s) => s.game)!;
   const talent = useGame((s) => s.talent);
   const stage = game.talentShow?.stage ?? "none";
@@ -404,5 +505,42 @@ function TalentShow() {
         {stage === "none" || stage === "final" ? "Enter · $8,000" : stage === "audition" ? "Face the judges" : "Go to the final"}
       </PrimaryBtn>
     </Panel>
+  );
+}
+
+export function SystemSheet() {
+  const overlay = useGame((s) => s.overlay);
+  const setOverlay = useGame((s) => s.setOverlay);
+  const kind = overlay.type;
+  const map: Record<string, { title: string; node: ReactNode }> = {
+    saves: { title: "Save / Load", node: <Saves /> },
+    settings: { title: "Settings", node: <Settings /> },
+    cheats: { title: "Cheats", node: <Cheats /> },
+    credits: { title: "Credits", node: <Credits /> },
+    achievements: { title: "Achievements", node: <Achievements /> },
+    leaderboards: { title: "Leaderboards", node: <Leaders /> },
+    admin: { title: "Admin", node: <Admin /> },
+    editor: { title: "R2S Editor", node: <Editor /> },
+  };
+  const page = map[kind];
+  if (!page) return null;
+  return (
+    <div
+      className="fixed inset-0 z-40 grid place-items-end bg-bg/70 p-0 sm:place-items-center sm:p-4"
+      onClick={() => setOverlay({ type: "none" })}
+    >
+      <div
+        role="dialog"
+        aria-label={page.title}
+        className="max-h-[88dvh] w-full max-w-lg overflow-auto rounded-t-2xl border border-border bg-surface p-4 shadow-2xl sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs tracking-[0.16em] text-faint uppercase">Gear</p>
+          <GhostBtn onClick={() => setOverlay({ type: "none" })}>Close</GhostBtn>
+        </div>
+        {page.node}
+      </div>
+    </div>
   );
 }

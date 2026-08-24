@@ -1,5 +1,5 @@
 import { compact, money } from "@/lib/game/format";
-import { playerArtist } from "@/lib/game/sim";
+import { playerArtist, legalNameOf } from "@/lib/game/sim";
 import { useGame } from "@/lib/game/store";
 import { GhostBtn, Panel, Pill, PrimaryBtn } from "./bits";
 import { ArtistAvatar } from "./ArtistAvatar";
@@ -38,6 +38,7 @@ export function Career() {
               {a.name}
               <VerifiedBadge on={a.verified.x || a.verified.spotify} />
             </h2>
+            <p className="text-sm text-muted">Legal name {legalNameOf(a)}</p>
             <p className="text-sm text-muted">
               @{a.handle} · {a.age} · {a.nationality} · {a.hometown}
             </p>
